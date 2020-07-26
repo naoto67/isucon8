@@ -11,4 +11,4 @@ deps:
 
 .PHONY: build
 build:
-	${GOBIN} build -o torb -v ./src/torb/app.go
+	${GOBIN} build -o torb -v ./src/torb/**/*.go
