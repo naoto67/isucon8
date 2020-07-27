@@ -45,9 +45,9 @@ func getSheets() []*Sheet {
 
 func makeEventSheets(eventPrice int64) map[string]*Sheets {
 	return map[string]*Sheets{
-		"S": &Sheets{Total: 1000, Remains: 1000, Price: 5000 + eventPrice},
-		"A": &Sheets{Total: 1000, Remains: 1000, Price: 3000 + eventPrice},
-		"B": &Sheets{Total: 1000, Remains: 1000, Price: 1000 + eventPrice},
-		"C": &Sheets{Total: 1000, Remains: 1000, Price: 0 + eventPrice},
+		"S": &Sheets{Total: 50, Remains: 50, Price: 5000 + eventPrice},
+		"A": &Sheets{Total: 150, Remains: 150, Price: 3000 + eventPrice},
+		"B": &Sheets{Total: 300, Remains: 300, Price: 1000 + eventPrice},
+		"C": &Sheets{Total: 500, Remains: 500, Price: 0 + eventPrice},
 	}
 }
