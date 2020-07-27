@@ -105,6 +105,10 @@ func getEventWithoutDetail(e *Event) (*Event, error) {
 	if err != nil {
 		return nil, err
 	}
+	e.Total = 1000
+	for _, v := range res {
+		e.Remains = e.Remains + v.Remains
+	}
 	e.Sheets = res
 	return e, nil
 }
