@@ -1,5 +1,5 @@
 all: build
-GOBIN := /home/isucon/local/go/bin/go
+GOBIN := go
 
 .PHONY: clean
 clean:

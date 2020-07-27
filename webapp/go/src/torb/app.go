@@ -338,12 +338,15 @@ func main() {
 	})
 	e.GET("/api/users/:id", func(c echo.Context) error {
 		var user User
-		userID, _ := strconv.Atoi(c.Param("id"))
+		if err := db.QueryRow("SELECT id, nickname FROM users WHERE id = ?", c.Param("id")).Scan(&user.ID, &user.Nickname); err != nil {
+			return err
+		}
+
 		loginUser, err := getLoginUser(c)
 		if err != nil {
 			return err
 		}
-		if loginUser.ID != int64(userID) {
+		if user.ID != loginUser.ID {
 			return resError(c, "forbidden", 403)
 		}
 
