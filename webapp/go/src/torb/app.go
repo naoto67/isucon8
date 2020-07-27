@@ -570,13 +570,12 @@ func main() {
 			return err
 		}
 
-		var event *Event
-		if err := db.QueryRow("SELECT * FROM events WHERE id = ?", eventID).Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
-			fmt.Println("SCAN ERROR ", err)
-			return resError(c, "invalid_event", 404)
-		}
-		if event == nil {
-			return resError(c, "invalid_event", 404)
+		event, err := getEvent(eventID, user.ID)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return resError(c, "invalid_event", 404)
+			}
+			return err
 		} else if !event.PublicFg {
 			return resError(c, "invalid_event", 404)
 		}
@@ -585,10 +584,12 @@ func main() {
 			return resError(c, "invalid_rank", 404)
 		}
 
-		n, _ := strconv.Atoi(num)
-		sheet, err := getSheetByRankAndNum(rank, int64(n))
-		if err != nil {
-			return resError(c, "invalid_sheet", 404)
+		var sheet Sheet
+		if err := db.QueryRow("SELECT * FROM sheets WHERE `rank` = ? AND num = ?", rank, num).Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
+			if err == sql.ErrNoRows {
+				return resError(c, "invalid_sheet", 404)
+			}
+			return err
 		}
 
 		tx, err := db.Begin()
@@ -782,7 +783,7 @@ func main() {
 			return err
 		}
 
-		rows, err := db.Query("SELECT r.*, s.rank AS sheet_rank, s.num AS sheet_num, s.price AS sheet_price, e.price AS event_price FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id INNER JOIN events e ON e.id = r.event_id WHERE r.event_id = ? ORDER BY reserved_at ASC", event.ID)
+		rows, err := db.Query("SELECT r.*, e.price AS event_price FROM reservations r INNER JOIN events e ON e.id = r.event_id WHERE r.event_id = ? ORDER BY reserved_at ASC", event.ID)
 		if err != nil {
 			return err
 		}
@@ -791,9 +792,13 @@ func main() {
 		var reports []Report
 		for rows.Next() {
 			var reservation Reservation
-			var sheet Sheet
-			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &sheet.Rank, &sheet.Num, &sheet.Price, &event.Price); err != nil {
+			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &event.Price); err != nil {
 				return err
+			}
+			sheet := getSheetByID(reservation.SheetID)
+			if sheet == nil {
+				fmt.Println("not found sheet")
+				return errors.New("not found")
 			}
 			report := Report{
 				ReservationID: reservation.ID,
@@ -826,6 +831,10 @@ func main() {
 				return err
 			}
 			sheet := getSheetByID(reservation.SheetID)
+			if sheet == nil {
+				fmt.Println("not found sheet")
+				return errors.New("not found")
+			}
 			report := Report{
 				ReservationID: reservation.ID,
 				EventID:       event.ID,
