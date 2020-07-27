@@ -181,7 +181,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 			return nil, err
 		}
 
-		reservations[r.ID] = r
+		reservations[r.SheetID] = r
 	}
 	event.Sheets = makeEventSheets(event.Price)
 
