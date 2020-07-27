@@ -570,14 +570,12 @@ func main() {
 			return err
 		}
 
-		var event *Event
+		var event Event
 		if err := db.QueryRow("SELECT * FROM events WHERE id = ?", eventID).Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
 			fmt.Println("SCAN ERROR ", err)
 			return resError(c, "invalid_event", 404)
 		}
-		if event == nil {
-			return resError(c, "invalid_event", 404)
-		} else if !event.PublicFg {
+		if !event.PublicFg {
 			return resError(c, "invalid_event", 404)
 		}
 
