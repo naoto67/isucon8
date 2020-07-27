@@ -15,7 +15,7 @@ func fetchEventReservationCount(eventID, eventPrice int64) (map[string]*Sheets, 
 			Count   int    `db:"cnt"`
 			Price   int    `db:"price"`
 		}
-		if err := rows.Scan(&rankCount); err != nil {
+		if err := rows.Scan(&rankCount.SheetID, &rankCount.Rank, &rankCount.Price, &rankCount.Count); err != nil {
 			return nil, err
 		}
 		sheets := getSheetsByRank(rankCount.Rank)

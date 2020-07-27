@@ -395,7 +395,7 @@ func main() {
 		var recentEvents []*Event
 		for rows.Next() {
 			var event Event
-			if err := rows.Scan(&event); err != nil {
+			if err := rows.Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
 				return err
 			}
 			sheets, err := fetchEventReservationCount(event.ID, event.Price)
