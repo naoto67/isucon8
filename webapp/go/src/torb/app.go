@@ -338,19 +338,16 @@ func main() {
 	})
 	e.GET("/api/users/:id", func(c echo.Context) error {
 		var user User
-		if err := db.QueryRow("SELECT id, nickname FROM users WHERE id = ?", c.Param("id")).Scan(&user.ID, &user.Nickname); err != nil {
-			return err
-		}
-
+		userID, _ := strconv.Atoi(c.Param("id"))
 		loginUser, err := getLoginUser(c)
 		if err != nil {
 			return err
 		}
-		if user.ID != loginUser.ID {
+		if loginUser.ID != int64(userID) {
 			return resError(c, "forbidden", 403)
 		}
 
-		rows, err := db.Query("SELECT r.*, s.rank AS sheet_rank, s.num AS sheet_num FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id WHERE r.user_id = ? ORDER BY IFNULL(r.canceled_at, r.reserved_at) DESC LIMIT 5", user.ID)
+		rows, err := db.Query("SELECT * FROM reservations INNER JOIN events ON events.id = reservations.event_id WHERE user_id = ? ORDER BY IFNULL(canceled_at, reserved_at) DESC LIMIT 5", user.ID)
 		if err != nil {
 			return err
 		}
@@ -359,21 +356,15 @@ func main() {
 		var recentReservations []Reservation
 		for rows.Next() {
 			var reservation Reservation
-			var sheet Sheet
-			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &sheet.Rank, &sheet.Num); err != nil {
+			var e Event
+			if er := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &e.ID, &e.Title, &e.PublicFg, &e.ClosedFg, &e.Price); er != nil {
+				fmt.Println("SCAN ERROR", err)
 				return err
 			}
+			sheet := getSheetByID(reservation.SheetID)
+			price := e.Price + sheet.Price
 
-			event, err := getEvent(reservation.EventID, -1)
-			if err != nil {
-				return err
-			}
-			price := event.Sheets[sheet.Rank].Price
-			event.Sheets = nil
-			event.Total = 0
-			event.Remains = 0
-
-			reservation.Event = event
+			reservation.Event = &e
 			reservation.SheetRank = sheet.Rank
 			reservation.SheetNum = sheet.Num
 			reservation.Price = price

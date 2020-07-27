@@ -1,6 +1,6 @@
 package main
 
-func getEventBySheetID(sheetID int64) *Sheet {
+func getSheetByID(sheetID int64) *Sheet {
 	if sheetID <= 50 && sheetID > 0 {
 		return &Sheet{
 			ID:    sheetID,
@@ -37,7 +37,7 @@ func getEventBySheetID(sheetID int64) *Sheet {
 func getSheets() []*Sheet {
 	var sheets []*Sheet
 	for i := 1; i <= 1000; i++ {
-		sheet := getEventBySheetID(int64(i))
+		sheet := getSheetByID(int64(i))
 		sheets = append(sheets, sheet)
 	}
 	return sheets
