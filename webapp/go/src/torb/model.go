@@ -10,11 +10,11 @@ type User struct {
 }
 
 type Event struct {
-	ID       int64  `json:"id,omitempty"`
-	Title    string `json:"title,omitempty"`
-	PublicFg bool   `json:"public,omitempty"`
-	ClosedFg bool   `json:"closed,omitempty"`
-	Price    int64  `json:"price,omitempty"`
+	ID       int64  `json:"id,omitempty",db:"id"`
+	Title    string `json:"title,omitempty",db:"title"`
+	PublicFg bool   `json:"public,omitempty",db:"public_fg"`
+	ClosedFg bool   `json:"closed,omitempty",db:"closed_fg"`
+	Price    int64  `json:"price,omitempty",db:"price"`
 
 	Total   int                `json:"total"`
 	Remains int                `json:"remains"`

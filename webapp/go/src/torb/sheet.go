@@ -43,6 +43,36 @@ func getSheets() []*Sheet {
 	return sheets
 }
 
+func getSheetsByRank(rank string) *Sheets {
+	switch rank {
+	case "S":
+		return &Sheets{
+			Total:   50,
+			Remains: 50,
+			Price:   5000,
+		}
+	case "A":
+		return &Sheets{
+			Total:   150,
+			Remains: 150,
+			Price:   3000,
+		}
+	case "B":
+		return &Sheets{
+			Total:   300,
+			Remains: 300,
+			Price:   1000,
+		}
+	case "C":
+		return &Sheets{
+			Total:   500,
+			Remains: 500,
+			Price:   0,
+		}
+	}
+	return nil
+}
+
 func makeEventSheets(eventPrice int64) map[string]*Sheets {
 	return map[string]*Sheets{
 		"S": &Sheets{Total: 50, Remains: 50, Price: 5000 + eventPrice},

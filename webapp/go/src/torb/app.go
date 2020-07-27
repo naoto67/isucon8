@@ -386,7 +386,7 @@ func main() {
 			return err
 		}
 
-		rows, err = db.Query("SELECT event_id FROM reservations WHERE user_id = ? GROUP BY event_id ORDER BY MAX(IFNULL(canceled_at, reserved_at)) DESC LIMIT 5", user.ID)
+		rows, err = db.Query("SELECT events.* FROM reservations INNER JOIN events ON events.id = reservations.event_id WHERE user_id = ? GROUP BY event_id ORDER BY MAX(IFNULL(canceled_at, reserved_at)) DESC LIMIT 5", user.ID)
 		if err != nil {
 			return err
 		}
@@ -394,18 +394,16 @@ func main() {
 
 		var recentEvents []*Event
 		for rows.Next() {
-			var eventID int64
-			if err := rows.Scan(&eventID); err != nil {
+			var event Event
+			if err := rows.Scan(&event); err != nil {
 				return err
 			}
-			event, err := getEvent(eventID, -1)
+			sheets, err := fetchEventReservationCount(event.ID, event.Price)
 			if err != nil {
 				return err
 			}
-			for k := range event.Sheets {
-				event.Sheets[k].Detail = nil
-			}
-			recentEvents = append(recentEvents, event)
+			event.Sheets = sheets
+			recentEvents = append(recentEvents, &event)
 		}
 		if recentEvents == nil {
 			recentEvents = make([]*Event, 0)
