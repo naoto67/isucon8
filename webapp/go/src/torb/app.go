@@ -570,12 +570,13 @@ func main() {
 			return err
 		}
 
-		var event Event
-		if err := db.QueryRow("SELECT * FROM events WHERE id = ?", eventID).Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
-			fmt.Println("SCAN ERROR ", err)
-			return resError(c, "invalid_event", 404)
-		}
-		if !event.PublicFg {
+		event, err := getEvent(eventID, user.ID)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return resError(c, "invalid_event", 404)
+			}
+			return err
+		} else if !event.PublicFg {
 			return resError(c, "invalid_event", 404)
 		}
 
@@ -583,10 +584,12 @@ func main() {
 			return resError(c, "invalid_rank", 404)
 		}
 
-		n, _ := strconv.Atoi(num)
-		sheet, err := getSheetByRankAndNum(rank, int64(n))
-		if err != nil {
-			return resError(c, "invalid_sheet", 404)
+		var sheet Sheet
+		if err := db.QueryRow("SELECT * FROM sheets WHERE `rank` = ? AND num = ?", rank, num).Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
+			if err == sql.ErrNoRows {
+				return resError(c, "invalid_sheet", 404)
+			}
+			return err
 		}
 
 		tx, err := db.Begin()
