@@ -1,7 +1,7 @@
 package main
 
 func fetchEventReservationCount(eventID, eventPrice int64) (map[string]*Sheets, error) {
-	res := make(map[string]*Sheets)
+	res := makeEventSheets(eventPrice)
 	rows, err := db.Query("SELECT sheets.id, rank, price, COUNT(*) as cnt FROM reservations INNER JOIN sheets ON sheets.id = reservations.sheet_id WHERE canceled_at IS NULL AND event_id = ? GROUP BY sheets.rank", eventID)
 	if err != nil {
 		return nil, err

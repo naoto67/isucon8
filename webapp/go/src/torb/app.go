@@ -403,6 +403,10 @@ func main() {
 				return err
 			}
 			event.Sheets = sheets
+			event.Total = 1000
+			for _, v := range event.Sheets {
+				event.Remains = event.Remains + v.Remains
+			}
 			recentEvents = append(recentEvents, &event)
 		}
 		if recentEvents == nil {
