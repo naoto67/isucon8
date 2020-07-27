@@ -1,11 +1,11 @@
 package main
 
+import "errors"
+
 func getSheetByID(sheetID int64) *Sheet {
 	if sheetID <= 50 && sheetID > 0 {
 		return &Sheet{
-			ID:    sheetID,
-			Rank:  "S",
-			Num:   sheetID,
+			ID: sheetID, Rank: "S", Num: sheetID,
 			Price: 5000,
 		}
 	} else if sheetID <= 200 {
@@ -71,6 +71,36 @@ func getSheetsByRank(rank string) *Sheets {
 		}
 	}
 	return nil
+}
+
+func getSheetByRankAndNum(rank string, num int64) (*Sheet, error) {
+	if rank == "S" && num <= 50 && num > 0 {
+		return &Sheet{
+			ID:    num + 1,
+			Num:   num,
+			Price: 5000,
+		}, nil
+	} else if rank == "A" && num <= 150 && num > 0 {
+		return &Sheet{
+			ID:    num + 1,
+			Num:   num,
+			Price: 3000,
+		}, nil
+
+	} else if rank == "B" && num <= 300 && num > 0 {
+		return &Sheet{
+			ID:    num + 1,
+			Num:   num,
+			Price: 1000,
+		}, nil
+	} else if rank == "C" && num <= 500 && num > 0 {
+		return &Sheet{
+			ID:    num + 1,
+			Num:   num,
+			Price: 0,
+		}, nil
+	}
+	return nil, errors.New("invalid sheet")
 }
 
 func makeEventSheets(eventPrice int64) map[string]*Sheets {
