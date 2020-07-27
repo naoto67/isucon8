@@ -575,11 +575,8 @@ func main() {
 			fmt.Println("SCAN ERROR ", err)
 			return resError(c, "invalid_event", 404)
 		}
-		if err != nil {
-			if err == sql.ErrNoRows {
-				return resError(c, "invalid_event", 404)
-			}
-			return err
+		if event == nil {
+			return resError(c, "invalid_event", 404)
 		} else if !event.PublicFg {
 			return resError(c, "invalid_event", 404)
 		}
