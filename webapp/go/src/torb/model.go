@@ -2,8 +2,6 @@ package main
 
 import "time"
 
-type EventDict map[int64]Event
-
 type User struct {
 	ID        int64  `json:"id,omitempty"`
 	Nickname  string `json:"nickname,omitempty"`

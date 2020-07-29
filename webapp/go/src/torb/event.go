@@ -113,7 +113,7 @@ func getEventWithoutDetail(e *Event) (*Event, error) {
 	return e, nil
 }
 
-func FetchEventDict() (EventDict, error) {
+func FetchEventDict() (map[int64]*Event, error) {
 	cli, err := FetchMongoDBClient()
 	if err != nil {
 		return nil, err
@@ -123,10 +123,10 @@ func FetchEventDict() (EventDict, error) {
 	if err != nil {
 		return nil, err
 	}
-	dict := make(EventDict)
+	dict := make(map[int64]*Event)
 
 	for _, v := range events {
-		dict[v.ID] = *v
+		dict[v.ID] = v
 	}
 	return dict, nil
 }
