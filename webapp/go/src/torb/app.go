@@ -734,7 +734,6 @@ func main() {
 		return nil
 	}, adminLoginRequired)
 	e.GET("/admin/api/reports/events/:id/sales", func(c echo.Context) error {
-		time.Sleep(100 * time.Millisecond)
 		eventID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 		if err != nil {
 			return resError(c, "not_found", 404)
@@ -776,10 +775,10 @@ func main() {
 			}
 			reports = append(reports, report)
 		}
+		time.Sleep(100 * time.Millisecond)
 		return renderReportCSV(c, reports)
 	}, adminLoginRequired)
 	e.GET("/admin/api/reports/sales", func(c echo.Context) error {
-		time.Sleep(100 * time.Millisecond)
 		dict, err := FetchEventDict()
 		if err != nil {
 			return err
