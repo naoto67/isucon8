@@ -227,12 +227,6 @@ func main() {
 			}
 			cli.InsertEvent(&event)
 		}
-		dict, err := FetchEventDict()
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			fmt.Println(dict[1])
-		}
 		return c.NoContent(204)
 	})
 	e.POST("/api/users", func(c echo.Context) error {
@@ -784,7 +778,11 @@ func main() {
 		return renderReportCSV(c, reports)
 	}, adminLoginRequired)
 	e.GET("/admin/api/reports/sales", func(c echo.Context) error {
-		rows, err := db.Query("select r.*, e.id as event_id, e.price as event_price from reservations r inner join events e on e.id = r.event_id order by reserved_at asc")
+		dict, err := FetchEventDict()
+		if err != nil {
+			return err
+		}
+		rows, err := db.Query("SELECT * FROM reservations ORDER BY reserved_at ASC")
 		if err != nil {
 			return err
 		}
@@ -793,8 +791,7 @@ func main() {
 		var reports []Report
 		for rows.Next() {
 			var reservation Reservation
-			var event Event
-			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &event.ID, &event.Price); err != nil {
+			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt); err != nil {
 				return err
 			}
 			sheet := getSheetByID(reservation.SheetID)
@@ -802,14 +799,15 @@ func main() {
 				fmt.Println("not found sheet")
 				return errors.New("not found")
 			}
+			price := dict[reservation.EventID].Price
 			report := Report{
 				ReservationID: reservation.ID,
-				EventID:       event.ID,
+				EventID:       reservation.EventID,
 				Rank:          sheet.Rank,
 				Num:           sheet.Num,
 				UserID:        reservation.UserID,
 				SoldAt:        reservation.ReservedAt.Format("2006-01-02T15:04:05.000000Z"),
-				Price:         event.Price + sheet.Price,
+				Price:         price + sheet.Price,
 			}
 			if reservation.CanceledAt != nil {
 				report.CanceledAt = reservation.CanceledAt.Format("2006-01-02T15:04:05.000000Z")
