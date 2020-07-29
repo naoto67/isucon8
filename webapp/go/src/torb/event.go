@@ -85,30 +85,6 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 	return event, nil
 }
 
-func getEvents(all bool) ([]*Event, error) {
-	cli, err := FetchMongoDBClient()
-	if err != nil {
-		return nil, err
-	}
-	defer cli.Close()
-	e, err := cli.FindAllEvents()
-	if err != nil {
-		return nil, err
-	}
-	var events []*Event
-	for _, v := range e {
-		if !all && !v.PublicFg {
-			continue
-		}
-		v, err := getEventWithoutDetail(v)
-		if err != nil {
-			return nil, err
-		}
-		events = append(events, v)
-	}
-	return events, nil
-}
-
 func getEventWithoutDetail(e *Event) (*Event, error) {
 	res, err := fetchEventReservationCount(e.ID, e.Price)
 	if err != nil {
@@ -138,4 +114,53 @@ func FetchEventDict() (map[int64]*Event, error) {
 		dict[v.ID] = v
 	}
 	return dict, nil
+}
+
+func getEvents(all bool) ([]*Event, error) {
+	rows, err := db.Query("SELECT * FROM events ORDER BY id ASC")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var events []*Event
+	eventDict := make(map[int64]*Event)
+	for rows.Next() {
+		var event Event
+		if err := rows.Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
+			return nil, err
+		}
+		if !all && !event.PublicFg {
+			continue
+		}
+		// 残りを最大にしてEventを作成
+		event.Total = 1000
+		event.Remains = 1000
+		event.Sheets = makeEventSheets(event.Price)
+		eventDict[event.ID] = &event
+		events = append(events, &event)
+	}
+
+	rows, err = db.Query("SELECT event_id, rank, price, COUNT(*) as cnt FROM reservations INNER JOIN sheets ON sheets.id = reservations.sheet_id WHERE canceled_at IS NULL GROUP BY event_id, sheets.rank")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var eventRankCount struct {
+			EventID int64
+			Rank    string
+			Price   int
+			Count   int
+		}
+		if err := rows.Scan(&eventRankCount.EventID, &eventRankCount.Rank, &eventRankCount.Price, &eventRankCount.Count); err != nil {
+			return nil, err
+		}
+		if v, ok := eventDict[eventRankCount.EventID]; ok {
+			v.Remains = v.Remains - eventRankCount.Count
+			v.Sheets[eventRankCount.Rank].Remains = v.Sheets[eventRankCount.Rank].Remains - eventRankCount.Count
+		}
+	}
+	return events, nil
 }
