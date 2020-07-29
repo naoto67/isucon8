@@ -81,6 +81,17 @@ func (m *mongoDBClient) FindAllEvents() ([]*Event, error) {
 	return events, err
 }
 
+func (m *mongoDBClient) FindEventByID(eventID int64) (*Event, error) {
+	col := m.Client.Database(MONGO_DB_NAME).Collection(EVENT_COLLECTION_NAME)
+	filter := bson.D{{"id", eventID}}
+	var event *Event
+	err := col.FindOne(context.Background(), filter).Decode(&event)
+	if err != nil {
+		return nil, err
+	}
+	return event, err
+}
+
 func (m *mongoDBClient) Close() error {
 	return m.Client.Disconnect(context.Background())
 }

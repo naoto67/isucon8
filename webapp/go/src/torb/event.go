@@ -28,8 +28,13 @@ func fetchEventReservationCount(eventID, eventPrice int64) (map[string]*Sheets, 
 }
 
 func getEvent(eventID, loginUserID int64) (*Event, error) {
-	var event Event
-	if err := db.QueryRow("SELECT * FROM events WHERE id = ?", eventID).Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
+	cli, err := FetchMongoDBClient()
+	if err != nil {
+		return nil, err
+	}
+	defer cli.Close()
+	event, err := cli.FindEventByID(eventID)
+	if err != nil {
 		return nil, err
 	}
 	event.Remains = 1000
@@ -66,7 +71,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		event.Sheets[sheet.Rank].Detail = append(event.Sheets[sheet.Rank].Detail, sheet)
 	}
 
-	return &event, nil
+	return event, nil
 }
 
 func getEvents(all bool) ([]*Event, error) {
