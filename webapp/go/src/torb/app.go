@@ -172,6 +172,8 @@ func main() {
 		log.Fatal(err)
 	}
 
+	NewMongoDB()
+
 	e := echo.New()
 	funcs := template.FuncMap{
 		"encode_json": func(v interface{}) string {
@@ -207,7 +209,23 @@ func main() {
 		if err != nil {
 			return nil
 		}
-
+		rows, err := db.Query("SELECT * FROM events")
+		if err != nil {
+			return nil
+		}
+		defer rows.Close()
+		cli, err := FetchMongoDBClient()
+		if err != nil {
+			return nil
+		}
+		defer cli.Close()
+		for rows.Next() {
+			var event Event
+			if err = rows.Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
+				return nil
+			}
+			cli.InsertEvent(&event)
+		}
 		return c.NoContent(204)
 	})
 	e.POST("/api/users", func(c echo.Context) error {

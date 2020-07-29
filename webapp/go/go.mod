@@ -15,6 +15,7 @@ require (
 	github.com/mattn/go-isatty v0.0.4 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v0.0.0-20170224212429-dcecefd839c4 // indirect
+	go.mongodb.org/mongo-driver v1.3.5
 	golang.org/x/sys v0.0.0-20200724161237-0e2f3a69832c // indirect
 	google.golang.org/appengine v1.6.6 // indirect
 )
