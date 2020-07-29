@@ -111,3 +111,13 @@ func makeEventSheets(eventPrice int64) map[string]*Sheets {
 		"C": &Sheets{Total: 500, Remains: 500, Price: 0 + eventPrice},
 	}
 }
+
+func validateRank(rank string) bool {
+	switch rank {
+	case "A", "S", "B", "C":
+		return true
+	case "a", "s", "b", "c":
+		return true
+	}
+	return false
+}
