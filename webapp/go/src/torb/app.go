@@ -227,6 +227,9 @@ func main() {
 			}
 			cli.InsertEvent(&event)
 		}
+
+		e, err := cli.FindAllEvents()
+		fmt.Println("FIND ALL EVENTS: ", e, err)
 		return c.NoContent(204)
 	})
 	e.POST("/api/users", func(c echo.Context) error {

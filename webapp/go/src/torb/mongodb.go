@@ -69,6 +69,18 @@ func (m *mongoDBClient) UpdateEventFg(eventID int64, publicFg, closedFg bool) er
 	return col.FindOneAndUpdate(context.Background(), filter, item).Decode(&bson.M{})
 }
 
+func (m *mongoDBClient) FindAllEvents() ([]*Event, error) {
+	var events []*Event
+	col := m.Client.Database(MONGO_DB_NAME).Collection(EVENT_COLLECTION_NAME)
+	filter := bson.D{} // fetch all
+	cursor, err := col.Find(context.Background(), filter)
+	if err != nil {
+		return nil, err
+	}
+	err = cursor.All(context.Background(), &events)
+	return events, err
+}
+
 func (m *mongoDBClient) Close() error {
 	return m.Client.Disconnect(context.Background())
 }
