@@ -633,6 +633,22 @@ func main() {
 			tx.Rollback()
 			return err
 		}
+		cli, err := FetchMongoDBClient()
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+		err = cli.InsertEvent(&Event{
+			ID:       eventID,
+			Title:    params.Title,
+			PublicFg: params.Public,
+			ClosedFg: false,
+			Price:    int64(params.Price),
+		})
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
 		if err := tx.Commit(); err != nil {
 			return err
 		}
@@ -691,6 +707,17 @@ func main() {
 			return err
 		}
 		if _, err := tx.Exec("UPDATE events SET public_fg = ?, closed_fg = ? WHERE id = ?", params.Public, params.Closed, event.ID); err != nil {
+			tx.Rollback()
+			return err
+		}
+		cli, err := FetchMongoDBClient()
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+		defer cli.Close()
+		err = cli.UpdateEventFg(event.ID, params.Public, params.Closed)
+		if err != nil {
 			tx.Rollback()
 			return err
 		}

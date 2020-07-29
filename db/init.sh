@@ -3,6 +3,7 @@
 ROOT_DIR=$(cd $(dirname $0)/..; pwd)
 DB_DIR="$ROOT_DIR/db"
 BENCH_DIR="$ROOT_DIR/bench"
+MONGODB_HOST="10.0.3.101"
 
 export MYSQL_PWD=isucon
 
@@ -19,3 +20,10 @@ mysql -uisucon torb -e 'ALTER TABLE reservations DROP KEY event_id_and_sheet_id_
 gzip -dc "$DB_DIR/isucon8q-initial-dataset.sql.gz" | mysql -uisucon torb
 mysql -uisucon torb -e 'ALTER TABLE reservations ADD KEY event_id_and_sheet_id_idx (event_id, sheet_id)'
 mysql -uisucon torb -e 'ALTER TABLE reservations ADD INDEX user_id_idx (user_id)'
+
+
+mongo $MONGODB_HOST <<EOF
+use default
+db.createCollection("events")
+db.events.createIndex({id: 1}, {unique: 1})
+EOF

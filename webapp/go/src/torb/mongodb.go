@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"os"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 var (
-	MONGO_DB_NAME = "default"
+	MONGO_DB_NAME         = "default"
+	EVENT_COLLECTION_NAME = "events"
 )
 
 type mongoDBClient struct {
@@ -54,9 +56,17 @@ func FetchMongoDBClient() (*mongoDBClient, error) {
 }
 
 func (m *mongoDBClient) InsertEvent(event *Event) error {
-	col := m.Client.Database(MONGO_DB_NAME).Collection("event")
+	col := m.Client.Database(MONGO_DB_NAME).Collection(EVENT_COLLECTION_NAME)
 	_, err := col.InsertOne(context.Background(), event)
 	return err
+}
+
+// update by id
+func (m *mongoDBClient) UpdateEventFg(eventID int64, publicFg, closedFg bool) error {
+	col := m.Client.Database(MONGO_DB_NAME).Collection(EVENT_COLLECTION_NAME)
+	filter := bson.D{{"id", eventID}}
+	item := bson.D{{"$set", bson.M{"publicfg": publicFg, "closedfg": closedFg}}}
+	return col.FindOneAndUpdate(context.Background(), filter, item).Decode(&bson.M{})
 }
 
 func (m *mongoDBClient) Close() error {
