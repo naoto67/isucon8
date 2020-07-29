@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 func fetchEventReservationCount(eventID, eventPrice int64) (map[string]*Sheets, error) {
 	res := makeEventSheets(eventPrice)
 	rows, err := db.Query("SELECT sheets.id, rank, price, COUNT(*) as cnt FROM reservations INNER JOIN sheets ON sheets.id = reservations.sheet_id WHERE canceled_at IS NULL AND event_id = ? GROUP BY sheets.rank", eventID)
@@ -35,6 +37,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 	defer cli.Close()
 	event, err := cli.FindEventByID(eventID)
 	if err != nil {
+		fmt.Println("DEBUG:", err)
 		return nil, err
 	}
 	event.Remains = 1000
