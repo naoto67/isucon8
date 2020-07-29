@@ -26,10 +26,12 @@ func NewMongoDB() error {
 		fmt.Println("MONGODB ERROR: ", err)
 		return err
 	}
+	cli.Connect(context.Background())
 	err = cli.Ping(context.Background(), &readpref.ReadPref{})
 	if err != nil {
 		panic(err)
 	}
+	cli.Disconnect(context.Background())
 	return nil
 }
 
