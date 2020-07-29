@@ -1,6 +1,11 @@
 package main
 
-import "fmt"
+import (
+	"database/sql"
+	"fmt"
+
+	"go.mongodb.org/mongo-driver/mongo"
+)
 
 func fetchEventReservationCount(eventID, eventPrice int64) (map[string]*Sheets, error) {
 	res := makeEventSheets(eventPrice)
@@ -38,6 +43,9 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 	event, err := cli.FindEventByID(eventID)
 	if err != nil {
 		fmt.Println("DEBUG:", err)
+		if err == mongo.ErrNoDocuments {
+			return nil, sql.ErrNoRows
+		}
 		return nil, err
 	}
 	event.Remains = 1000
