@@ -70,32 +70,25 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 }
 
 func getEvents(all bool) ([]*Event, error) {
-	tx, err := db.Begin()
+	cli, err := FetchMongoDBClient()
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Commit()
-
-	rows, err := tx.Query("SELECT * FROM events ORDER BY id ASC")
+	defer cli.Close()
+	e, err := cli.FindAllEvents()
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
 	var events []*Event
-	for rows.Next() {
-		var event Event
-		if err := rows.Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
-			return nil, err
-		}
-		if !all && !event.PublicFg {
+	for _, v := range e {
+		if !all && !v.PublicFg {
 			continue
 		}
-		e, err := getEventWithoutDetail(&event)
+		v, err := getEventWithoutDetail(v)
 		if err != nil {
 			return nil, err
 		}
-		events = append(events, e)
+		events = append(events, v)
 	}
 	return events, nil
 }
