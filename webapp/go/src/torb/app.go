@@ -775,6 +775,7 @@ func main() {
 			}
 			reports = append(reports, report)
 		}
+		time.Sleep(100 * time.Millisecond)
 		return renderReportCSV(c, reports)
 	}, adminLoginRequired)
 	e.GET("/admin/api/reports/sales", func(c echo.Context) error {
