@@ -112,3 +112,21 @@ func getEventWithoutDetail(e *Event) (*Event, error) {
 	e.Sheets = res
 	return e, nil
 }
+
+func FetchEventDict() (EventDict, error) {
+	cli, err := FetchMongoDBClient()
+	if err != nil {
+		return nil, err
+	}
+	defer cli.Close()
+	events, err := cli.FindAllEvents()
+	if err != nil {
+		return nil, err
+	}
+	dict := make(EventDict)
+
+	for _, v := range events {
+		dict[v.ID] = *v
+	}
+	return dict, nil
+}
