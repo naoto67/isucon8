@@ -72,3 +72,9 @@ func (m *mongoDBClient) UpdateEventFg(eventID int64, publicFg, closedFg bool) er
 func (m *mongoDBClient) Close() error {
 	return m.Client.Disconnect(context.Background())
 }
+
+func (m *mongoDBClient) Truncate(collectionName string) error {
+	col := m.Client.Database(MONGO_DB_NAME).Collection(collectionName)
+	_, err := col.DeleteMany(context.Background(), bson.D{})
+	return err
+}

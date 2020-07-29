@@ -218,6 +218,7 @@ func main() {
 		if err != nil {
 			return nil
 		}
+		cli.Truncate(EVENT_COLLECTION_NAME)
 		defer cli.Close()
 		for rows.Next() {
 			var event Event
