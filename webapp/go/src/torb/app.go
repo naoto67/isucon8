@@ -231,7 +231,7 @@ func main() {
 		if err != nil {
 			fmt.Println(err)
 		} else {
-			fmt.Println(dict[0])
+			fmt.Println(dict[1])
 		}
 		return c.NoContent(204)
 	})
