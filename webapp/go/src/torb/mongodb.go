@@ -121,3 +121,16 @@ func (m *mongoDBClient) UpdateCanceledAtReport(reservationID int64, canceledAt s
 	item := bson.D{{"$set", bson.M{"canceledat": canceledAt}}}
 	return col.FindOneAndUpdate(context.Background(), filter, item).Decode(&bson.M{})
 }
+
+func (m *mongoDBClient) FindAllReports() ([]Report, error) {
+	var reports []Report
+	col := m.Client.Database(MONGO_DB_NAME).Collection(REPORT_COLLECTION_NAME)
+	sortOption := options.Find().SetSort(bson.D{{"soldat", 1}})
+	filter := bson.D{{}}
+	cursor, err := col.Find(context.Background(), filter, sortOption)
+	if err != nil {
+		return nil, err
+	}
+	err = cursor.All(context.Background(), &reports)
+	return reports, err
+}
