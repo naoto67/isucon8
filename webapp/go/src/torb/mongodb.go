@@ -134,3 +134,16 @@ func (m *mongoDBClient) FindAllReports() ([]Report, error) {
 	err = cursor.All(context.Background(), &reports)
 	return reports, err
 }
+
+func (m *mongoDBClient) FindReportsByEventID(eventID int64) ([]Report, error) {
+	var reports []Report
+	col := m.Client.Database(MONGO_DB_NAME).Collection(REPORT_COLLECTION_NAME)
+	sortOption := options.Find().SetSort(bson.D{{"soldat", 1}})
+	filter := bson.D{{"eventid", eventID}}
+	cursor, err := col.Find(context.Background(), filter, sortOption)
+	if err != nil {
+		return nil, err
+	}
+	err = cursor.All(context.Background(), &reports)
+	return reports, err
+}
