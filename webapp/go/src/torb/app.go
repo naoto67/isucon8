@@ -9,6 +9,7 @@ import (
 	"html/template"
 	"io"
 	"log"
+	"math/rand"
 	"os"
 	"os/exec"
 	"sort"
@@ -165,6 +166,8 @@ func main() {
 		os.Getenv("DB_HOST"), os.Getenv("DB_PORT"),
 		os.Getenv("DB_DATABASE"),
 	)
+
+	rand.Seed(time.Now().Unix())
 
 	var err error
 	db, err = sql.Open("mysql", dsn)
@@ -434,12 +437,16 @@ func main() {
 		var sheet Sheet
 		var reservationID int64
 		for {
-			if err := db.QueryRow("SELECT * FROM sheets WHERE id NOT IN (SELECT sheet_id FROM reservations WHERE event_id = ? AND canceled_at IS NULL FOR UPDATE) AND `rank` = ? ORDER BY RAND() LIMIT 1", event.ID, params.Rank).Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
-				if err == sql.ErrNoRows {
-					return resError(c, "sold_out", 409)
-				}
+			sheets, err := getNotReservedSheets(event.ID, params.Rank)
+			if err != nil {
+				fmt.Println("getNotReservedSheets: ", err)
 				return err
 			}
+			if len(sheets) == 0 {
+				return resError(c, "sold_out", 409)
+			}
+
+			sheet = sheets[rand.Intn(len(sheets))]
 
 			tx, err := db.Begin()
 			if err != nil {

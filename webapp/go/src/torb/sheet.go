@@ -121,3 +121,19 @@ func validateRank(rank string) bool {
 	}
 	return false
 }
+
+func getNotReservedSheets(eventID int64, rank string) (sheets []Sheet, err error) {
+	rows, err := db.Query("SELECT * FROM sheets WHERE id NOT IN (SELECT sheet_id FROM reservations WHERE event_id = ? AND canceled_at IS NULL FOR UPDATE) AND `rank` = ?", eventID, rank)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var sheet Sheet
+		if err = rows.Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
+			return
+		}
+		sheets = append(sheets, sheet)
+	}
+	return
+}
