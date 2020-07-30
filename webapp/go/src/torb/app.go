@@ -275,7 +275,8 @@ func main() {
 
 			reports = append(reports, report)
 		}
-		cli.BulkInsertReports(reports)
+		err = cli.BulkInsertReports(reports)
+		fmt.Println("DEBUG: ", err)
 
 		err = cacheClient.Flush()
 		if err != nil {
