@@ -703,6 +703,7 @@ func main() {
 			return err
 		}
 		defer rows.Close()
+		time.Sleep(100 * time.Millisecond)
 
 		var reports []Report
 		for rows.Next() {
