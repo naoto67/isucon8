@@ -2,7 +2,7 @@ package main
 
 func fetchEventReservationCount(eventID, eventPrice int64) (map[string]*Sheets, error) {
 	res := makeEventSheets(eventPrice)
-	rows, err := db.Query("SELECT sheets.id, reservations WHERE canceled_at IS NULL AND event_id = ?", eventID)
+	rows, err := db.Query("SELECT sheet_id FROM reservations WHERE canceled_at IS NULL AND event_id = ?", eventID)
 	if err != nil {
 		return nil, err
 	}
