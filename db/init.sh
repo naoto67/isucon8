@@ -20,3 +20,12 @@ gzip -dc "$DB_DIR/isucon8q-initial-dataset.sql.gz" | mysql -uisucon torb
 mysql -uisucon torb -e 'ALTER TABLE reservations ADD KEY event_id_and_cancel_at_idx (event_id, canceled_at)'
 mysql -uisucon torb -e 'ALTER TABLE reservations ADD KEY cancel_at_idx (canceled_at)'
 mysql -uisucon torb -e 'ALTER TABLE reservations ADD INDEX user_id_idx (user_id)'
+
+mongo 10.0.3.103 <<EOS
+use default;
+db.createCollection("reports")
+db.reports.deleteMany({})
+db.reports.createIndex({reservationid: 1}, {unique: true})
+db.reports.createIndex({eventid: 1, canceledat: 1})
+db.reports.createIndex({canceledat: 1})
+EOS

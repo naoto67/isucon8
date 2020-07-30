@@ -193,6 +193,8 @@ func main() {
 	// redisPort := os.Getenv("REDIS_PORT")
 	// cacheClient = NewRedis("tcp", fmt.Sprintf("%s:%s", redisHost, redisPort))
 
+	NewMongoDB()
+
 	e := echo.New()
 	funcs := template.FuncMap{
 		"encode_json": func(v interface{}) string {
