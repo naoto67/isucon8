@@ -2,26 +2,22 @@ package main
 
 func fetchEventReservationCount(eventID, eventPrice int64) (map[string]*Sheets, error) {
 	res := makeEventSheets(eventPrice)
-	rows, err := db.Query("SELECT sheets.id, rank, price, COUNT(*) as cnt FROM reservations INNER JOIN sheets ON sheets.id = reservations.sheet_id WHERE canceled_at IS NULL AND event_id = ? GROUP BY sheets.rank", eventID)
+	rows, err := db.Query("SELECT sheets.id, reservations WHERE canceled_at IS NULL AND event_id = ?", eventID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var rankCount struct {
-			SheetID int64  `db:"id"`
-			Rank    string `db:"rank"`
-			Count   int    `db:"cnt"`
-			Price   int    `db:"price"`
+		var eventSheet struct {
+			EventID int64
+			SheetID int64
 		}
-		if err := rows.Scan(&rankCount.SheetID, &rankCount.Rank, &rankCount.Price, &rankCount.Count); err != nil {
+		if err := rows.Scan(&eventSheet.EventID, &eventSheet.SheetID); err != nil {
 			return nil, err
 		}
-		sheets := getSheetsByRank(rankCount.Rank)
-		sheets.Price = sheets.Price + eventPrice
-		sheets.Remains = sheets.Remains - rankCount.Count
-		res[rankCount.Rank] = sheets
+		sheet := getSheetByID(eventSheet.SheetID)
+		res[sheet.Rank].Remains = res[sheet.Rank].Remains - 1
 	}
 
 	return res, nil
@@ -67,37 +63,6 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 	}
 
 	return &event, nil
-}
-
-func oldGetEvents(all bool) ([]*Event, error) {
-	tx, err := db.Begin()
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Commit()
-
-	rows, err := tx.Query("SELECT * FROM events ORDER BY id ASC")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var events []*Event
-	for rows.Next() {
-		var event Event
-		if err := rows.Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
-			return nil, err
-		}
-		if !all && !event.PublicFg {
-			continue
-		}
-		e, err := getEventWithoutDetail(&event)
-		if err != nil {
-			return nil, err
-		}
-		events = append(events, e)
-	}
-	return events, nil
 }
 
 func getEventWithoutDetail(e *Event) (*Event, error) {
