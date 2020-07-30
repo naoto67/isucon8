@@ -831,38 +831,12 @@ func main() {
 		return renderReportCSV(c, reports)
 	}, adminLoginRequired)
 	e.GET("/admin/api/reports/sales", func(c echo.Context) error {
-		rows, err := db.Query("select r.*, e.id as event_id, e.price as event_price from reservations r inner join events e on e.id = r.event_id")
+		cli, err := FetchMongoDBClient()
 		if err != nil {
 			return err
 		}
-		defer rows.Close()
-
-		var reports []Report
-		for rows.Next() {
-			var reservation Reservation
-			var event Event
-			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &event.ID, &event.Price); err != nil {
-				return err
-			}
-			sheet := getSheetByID(reservation.SheetID)
-			if sheet == nil {
-				fmt.Println("not found sheet")
-				return errors.New("not found")
-			}
-			report := Report{
-				ReservationID: reservation.ID,
-				EventID:       event.ID,
-				Rank:          sheet.Rank,
-				Num:           sheet.Num,
-				UserID:        reservation.UserID,
-				SoldAt:        reservation.ReservedAt.Format("2006-01-02T15:04:05.000000Z"),
-				Price:         event.Price + sheet.Price,
-			}
-			if reservation.CanceledAt != nil {
-				report.CanceledAt = reservation.CanceledAt.Format("2006-01-02T15:04:05.000000Z")
-			}
-			reports = append(reports, report)
-		}
+		defer cli.Close()
+		reports, err := cli.FindAllReports()
 		return renderReportCSV(c, reports)
 	}, adminLoginRequired)
 
