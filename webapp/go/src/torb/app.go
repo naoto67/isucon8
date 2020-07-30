@@ -272,12 +272,9 @@ func main() {
 			if r.CanceledAt != nil {
 				report.CanceledAt = r.CanceledAt.Format("2006-01-02T15:04:05.000000Z")
 			}
-			cli.InsertReport(report)
-
 			reports = append(reports, report)
 		}
 		err = cli.BulkInsertReports(reports)
-		fmt.Println("DEBUG: ", err)
 
 		err = cacheClient.Flush()
 		if err != nil {
