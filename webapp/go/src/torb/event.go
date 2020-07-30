@@ -138,25 +138,24 @@ func getEvents(all bool) ([]*Event, error) {
 		events = append(events, &event)
 	}
 
-	rows, err = db.Query("SELECT event_id, rank, price, COUNT(*) as cnt FROM reservations INNER JOIN sheets ON sheets.id = reservations.sheet_id WHERE canceled_at IS NULL GROUP BY event_id, sheets.rank")
+	rows, err = db.Query("SELECT event_id, sheet_id FROM reservations WHERE canceled_at IS NULL")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var eventRankCount struct {
+		var eventSheet struct {
 			EventID int64
-			Rank    string
-			Price   int
-			Count   int
+			SheetID int64
 		}
-		if err := rows.Scan(&eventRankCount.EventID, &eventRankCount.Rank, &eventRankCount.Price, &eventRankCount.Count); err != nil {
+		if err := rows.Scan(&eventSheet.EventID, &eventSheet.SheetID); err != nil {
 			return nil, err
 		}
-		if v, ok := eventDict[eventRankCount.EventID]; ok {
-			v.Remains = v.Remains - eventRankCount.Count
-			v.Sheets[eventRankCount.Rank].Remains = v.Sheets[eventRankCount.Rank].Remains - eventRankCount.Count
+		if v, ok := eventDict[eventSheet.EventID]; ok {
+			v.Remains = v.Remains - 1
+			sheet := getSheetByID(eventSheet.SheetID)
+			v.Sheets[sheet.Rank].Remains = v.Sheets[sheet.Rank].Remains - 1
 		}
 	}
 	return events, nil
