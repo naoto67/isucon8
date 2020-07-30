@@ -114,3 +114,10 @@ func (m *mongoDBClient) BulkInsertReports(reports []interface{}) error {
 	_, err := col.InsertMany(context.Background(), reports)
 	return err
 }
+
+func (m *mongoDBClient) UpdateCanceledAtReport(reservationID int64, canceledAt string) error {
+	col := m.Client.Database(MONGO_DB_NAME).Collection(REPORT_COLLECTION_NAME)
+	filter := bson.D{{"reservationid", reservationID}}
+	item := bson.D{{"$set", bson.M{"canceledat": canceledAt}}}
+	return col.FindOneAndUpdate(context.Background(), filter, item).Decode(&bson.M{})
+}

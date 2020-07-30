@@ -521,7 +521,8 @@ func main() {
 				return err
 			}
 
-			res, err := db.Exec("INSERT INTO reservations (event_id, sheet_id, user_id, reserved_at) VALUES (?, ?, ?, ?)", event.ID, sheet.ID, user.ID, time.Now().UTC().Format("2006-01-02 15:04:05.000000"))
+			now := time.Now().UTC()
+			res, err := db.Exec("INSERT INTO reservations (event_id, sheet_id, user_id, reserved_at) VALUES (?, ?, ?, ?)", event.ID, sheet.ID, user.ID, now.Format("2006-01-02 15:04:05.000000"))
 			if err != nil {
 				log.Println("re-try: rollback by", err)
 				continue
@@ -531,6 +532,22 @@ func main() {
 				log.Println("re-try: rollback by", err)
 				continue
 			}
+			cli, err := FetchMongoDBClient()
+			if err != nil {
+				return err
+			}
+			defer cli.Close()
+			cli.InsertReport(Report{
+				ReservationID: reservationID,
+				EventID:       event.ID,
+				Rank:          sheet.Rank,
+				Num:           sheet.Num,
+				UserID:        user.ID,
+				SoldAt:        now.Format("2006-01-02T15:04:05.000000Z"),
+				Price:         event.Price + sheet.Price,
+				CanceledAt:    "",
+			})
+
 			UnlockEventSheet(eventID, sheet.ID)
 
 			break
@@ -589,7 +606,19 @@ func main() {
 			return resError(c, "not_permitted", 403)
 		}
 
-		if _, err := db.Exec("UPDATE reservations SET canceled_at = ? WHERE id = ? AND canceled_at IS NULL", time.Now().UTC().Format("2006-01-02 15:04:05.000000"), reservation.ID); err != nil {
+		now := time.Now().UTC()
+		if _, err := db.Exec("UPDATE reservations SET canceled_at = ? WHERE id = ? AND canceled_at IS NULL", now.Format("2006-01-02 15:04:05.000000"), reservation.ID); err != nil {
+			return err
+		}
+
+		cli, err := FetchMongoDBClient()
+		if err != nil {
+			return err
+		}
+		defer cli.Close()
+		err = cli.UpdateCanceledAtReport(reservation.ID, now.Format("2006-01-02T15:04:05.000000Z"))
+		if err != nil {
+			fmt.Println(err)
 			return err
 		}
 
