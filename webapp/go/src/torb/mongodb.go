@@ -12,8 +12,9 @@ import (
 )
 
 var (
-	MONGO_DB_NAME         = "default"
-	EVENT_COLLECTION_NAME = "events"
+	MONGO_DB_NAME          = "default"
+	EVENT_COLLECTION_NAME  = "events"
+	REPORT_COLLECTION_NAME = "reports"
 )
 
 type mongoDBClient struct {
@@ -99,5 +100,17 @@ func (m *mongoDBClient) Close() error {
 func (m *mongoDBClient) Truncate(collectionName string) error {
 	col := m.Client.Database(MONGO_DB_NAME).Collection(collectionName)
 	_, err := col.DeleteMany(context.Background(), bson.D{})
+	return err
+}
+
+func (m *mongoDBClient) InsertReport(report Report) error {
+	col := m.Client.Database(MONGO_DB_NAME).Collection(REPORT_COLLECTION_NAME)
+	_, err := col.InsertOne(context.Background(), report)
+	return err
+}
+
+func (m *mongoDBClient) BulkInsertReports(reports []interface{}) error {
+	col := m.Client.Database(MONGO_DB_NAME).Collection(REPORT_COLLECTION_NAME)
+	_, err := col.InsertMany(context.Background(), reports)
 	return err
 }

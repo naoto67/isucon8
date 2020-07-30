@@ -2,6 +2,17 @@ package main
 
 import "time"
 
+type Report struct {
+	ReservationID int64
+	EventID       int64
+	Rank          string
+	Num           int64
+	UserID        int64
+	SoldAt        string
+	CanceledAt    string
+	Price         int64
+}
+
 type User struct {
 	ID        int64  `json:"id,omitempty" db:"id"`
 	Nickname  string `json:"nickname,omitempty" db:"nickname"`

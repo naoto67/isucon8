@@ -230,6 +230,52 @@ func main() {
 		if err != nil {
 			return nil
 		}
+		cli, err := FetchMongoDBClient()
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+		defer cli.Close()
+		eventDict, err := FetchEventDict()
+		if err != nil {
+			return err
+		}
+
+		rows, err := db.Query("SELECT * FROM reservations")
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+
+		var reports []interface{}
+		for rows.Next() {
+			var r Reservation
+			if err = rows.Scan(&r.ID, &r.EventID, &r.SheetID, &r.UserID, &r.ReservedAt, &r.CanceledAt); err != nil {
+				return err
+			}
+			sheet := getSheetByID(r.SheetID)
+			event, _ := eventDict[r.EventID]
+			r.ReservedAtUnix = r.ReservedAt.Unix()
+			if r.CanceledAt != nil {
+				r.CanceledAtUnix = r.CanceledAt.Unix()
+			}
+			report := Report{
+				ReservationID: r.ID,
+				EventID:       r.EventID,
+				Rank:          sheet.Rank,
+				Num:           sheet.Num,
+				UserID:        r.UserID,
+				SoldAt:        r.ReservedAt.Format("2006-01-02T15:04:05.000000Z"),
+				Price:         event.Price + sheet.Price,
+				CanceledAt:    "",
+			}
+			if r.CanceledAt != nil {
+				report.CanceledAt = r.CanceledAt.Format("2006-01-02T15:04:05.000000Z")
+			}
+
+			reports = append(reports, report)
+		}
+		cli.BulkInsertReports(reports)
 
 		err = cacheClient.Flush()
 		if err != nil {
@@ -791,17 +837,6 @@ func main() {
 	}, adminLoginRequired)
 
 	e.Start(":8080")
-}
-
-type Report struct {
-	ReservationID int64
-	EventID       int64
-	Rank          string
-	Num           int64
-	UserID        int64
-	SoldAt        string
-	CanceledAt    string
-	Price         int64
 }
 
 func renderReportCSV(c echo.Context, reports []Report) error {

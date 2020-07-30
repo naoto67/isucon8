@@ -26,6 +26,6 @@ use default;
 db.createCollection("reports")
 db.reports.deleteMany({})
 db.reports.createIndex({reservationid: 1}, {unique: true})
-db.reports.createIndex({eventid: 1, canceledat: 1})
-db.reports.createIndex({canceledat: 1})
+db.reports.createIndex({eventid: 1, soldat: 1})
+db.reports.createIndex({soldat: 1})
 EOS

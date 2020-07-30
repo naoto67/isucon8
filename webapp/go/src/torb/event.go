@@ -238,3 +238,20 @@ func FetchEventsCache() ([]*Event, error) {
 	}
 	return res, nil
 }
+func FetchEventDict() (map[int64]Event, error) {
+	eventDict := make(map[int64]Event)
+	rows, err := db.Query("SELECT * FROM events")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var event Event
+		if err := rows.Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
+			return nil, err
+		}
+		eventDict[event.ID] = event
+	}
+	return eventDict, nil
+}
