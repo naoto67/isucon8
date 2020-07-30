@@ -9,14 +9,11 @@ func fetchEventReservationCount(eventID, eventPrice int64) (map[string]*Sheets, 
 	defer rows.Close()
 
 	for rows.Next() {
-		var eventSheet struct {
-			EventID int64
-			SheetID int64
-		}
-		if err := rows.Scan(&eventSheet.EventID, &eventSheet.SheetID); err != nil {
+		var sheetID int64
+		if err := rows.Scan(&sheetID); err != nil {
 			return nil, err
 		}
-		sheet := getSheetByID(eventSheet.SheetID)
+		sheet := getSheetByID(sheetID)
 		res[sheet.Rank].Remains = res[sheet.Rank].Remains - 1
 	}
 
