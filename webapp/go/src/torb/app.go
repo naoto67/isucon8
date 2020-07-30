@@ -301,7 +301,7 @@ func main() {
 			return err
 		}
 
-		rows, err = db.Query("SELECT events.* FROM reservations INNER JOIN events ON events.id = reservations.event_id WHERE user_id = ? GROUP BY event_id ORDER BY MAX(IFNULL(canceled_at, reserved_at)) DESC LIMIT 5", user.ID)
+		rows, err = db.Query("SELECT events.* FROM reservations INNER JOIN events ON events.id = reservations.event_id WHERE user_id = ? GROUP BY events.id ORDER BY MAX(IFNULL(canceled_at, reserved_at)) DESC LIMIT 5", user.ID)
 		if err != nil {
 			return err
 		}
