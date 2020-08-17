@@ -37,7 +37,7 @@ func InitUserCache() error {
 }
 
 func RegisterUser(nickname, loginName, password string) (*User, error) {
-	key := fmt.Sprintf("%s:%s", USER_LOGIN_NAME_KEY, loginName)
+	key := fmt.Sprintf("%s%s", USER_LOGIN_NAME_KEY, loginName)
 	d, _ := cacheClient.SingleGet(key)
 	if d != nil {
 		return nil, ErrLoginNameEx
