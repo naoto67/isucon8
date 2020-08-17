@@ -1,5 +1,15 @@
 package main
 
+import (
+	"encoding/json"
+	"fmt"
+)
+
+var (
+	EVENT_COUNT_KEY = "ec"
+	EVENT_ID_KEY    = "ei:"
+)
+
 func fetchEventReservationCount(eventID, eventPrice int64) (map[string]*Sheets, error) {
 	res := makeEventSheets(eventPrice)
 	rows, err := db.Query("SELECT sheet_id FROM reservations WHERE canceled_at IS NULL AND event_id = ?", eventID)
@@ -129,4 +139,68 @@ func getEvents(all bool) ([]*Event, error) {
 		}
 	}
 	return events, nil
+}
+
+func InitEventCache() error {
+	var events []Event
+	err := db.Select(&events, "SELECT * FROM events")
+	if err != nil {
+		return err
+	}
+	dict := map[string][]byte{}
+	for _, v := range events {
+		data, err := json.Marshal(v)
+		if err != nil {
+			return err
+		}
+		key := fmt.Sprintf("%s%d", EVENT_ID_KEY, v.ID)
+		dict[key] = data
+	}
+
+	data, err := json.Marshal(events[len(events)-1].ID)
+	if err != nil {
+		return err
+	}
+	err = cacheClient.SingleSet(EVENT_COUNT_KEY, data)
+	if err != nil {
+		return err
+	}
+	return cacheClient.MultiSet(dict)
+}
+
+func RegisterEventCache(event Event) error {
+	key := fmt.Sprintf("%s%d", EVENT_ID_KEY, event.ID)
+	data, err := json.Marshal(event)
+	if err != nil {
+		return err
+	}
+	_, err = cacheClient.Increment(EVENT_COUNT_KEY, 1)
+	if err != nil {
+		return err
+	}
+
+	return cacheClient.SingleSet(key, data)
+}
+
+func UpdateEventCache(event Event) error {
+	key := fmt.Sprintf("%s%d", EVENT_ID_KEY, event.ID)
+	data, err := json.Marshal(event)
+	if err != nil {
+		return err
+	}
+
+	return cacheClient.SingleSet(key, data)
+}
+func FetchEventCache(eventID int64) (*Event, error) {
+	key := fmt.Sprintf("%s%d", EVENT_ID_KEY, eventID)
+	data, err := cacheClient.SingleGet(key)
+	if err != nil {
+		return nil, err
+	}
+	var e Event
+	err = json.Unmarshal(data, &e)
+	if err != nil {
+		return nil, err
+	}
+	return &e, nil
 }

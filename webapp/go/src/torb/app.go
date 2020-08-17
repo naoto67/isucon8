@@ -237,6 +237,10 @@ func main() {
 		if err != nil {
 			return err
 		}
+		err = InitEventCache()
+		if err != nil {
+			return err
+		}
 
 		return c.NoContent(204)
 	})
@@ -624,6 +628,7 @@ func main() {
 			tx.Rollback()
 			return err
 		}
+		go RegisterEventCache(Event{ID: eventID, Title: params.Title, PublicFg: params.Public, Price: params.Price, ClosedFg: false})
 		if err := tx.Commit(); err != nil {
 			return err
 		}
@@ -685,6 +690,9 @@ func main() {
 			tx.Rollback()
 			return err
 		}
+		event.PublicFg = params.Public
+		event.ClosedFg = params.Closed
+		go UpdateEventCache(*event)
 		if err := tx.Commit(); err != nil {
 			return err
 		}
