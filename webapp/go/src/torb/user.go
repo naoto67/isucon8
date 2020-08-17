@@ -15,10 +15,31 @@ var (
 	ErrLoginNameEx = errors.New("user found")
 )
 
+func InitUserCache() error {
+	var users []User
+	for _, v := range users {
+		data, err := json.Marshal(v)
+		if err != nil {
+			return err
+		}
+		key := fmt.Sprintf("%s%d", USER_ID_KEY, v.ID)
+		err = cacheClient.SingleSet(key, data)
+		if err != nil {
+			return err
+		}
+		key = fmt.Sprintf("%s%s", USER_LOGIN_NAME_KEY, v.LoginName)
+		err = cacheClient.SingleSet(key, data)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func RegisterUser(nickname, loginName, password string) (*User, error) {
 	key := fmt.Sprintf("%s:%s", USER_LOGIN_NAME_KEY, loginName)
-	_, err := cacheClient.SingleGet(key)
-	if err != nil {
+	d, _ := cacheClient.SingleGet(key)
+	if d == nil {
 		return nil, ErrLoginNameEx
 	}
 	sum := sha256.Sum256([]byte(password))

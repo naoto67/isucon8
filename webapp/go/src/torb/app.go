@@ -224,6 +224,15 @@ func main() {
 			return nil
 		}
 
+		err = cacheClient.Flush()
+		if err != nil {
+			return nil
+		}
+		err = InitUserCache()
+		if err != nil {
+			return nil
+		}
+
 		return c.NoContent(204)
 	})
 	e.POST("/api/users", func(c echo.Context) error {
