@@ -504,13 +504,9 @@ func main() {
 			return err
 		}
 
-		var event Event
-		err = db.Get(&event, "SELECT * FROM events WHERE id = ?", eventID)
+		event, err := FetchEventCache(eventID)
 		if err != nil {
-			if err == sql.ErrNoRows {
-				return resError(c, "invalid_event", 404)
-			}
-			return err
+			return resError(c, "invalid_event", 404)
 		} else if !event.PublicFg {
 			return resError(c, "invalid_event", 404)
 		}
@@ -668,12 +664,9 @@ func main() {
 			params.Public = false
 		}
 
-		event, err := getEvent(eventID, -1)
+		event, err := FetchEventCache(eventID)
 		if err != nil {
-			if err == sql.ErrNoRows {
-				return resError(c, "not_found", 404)
-			}
-			return err
+			return resError(c, "not_found", 404)
 		}
 
 		if event.ClosedFg {

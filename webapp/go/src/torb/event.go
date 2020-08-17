@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 )
@@ -31,9 +32,9 @@ func fetchEventReservationCount(eventID, eventPrice int64) (map[string]*Sheets, 
 }
 
 func getEvent(eventID, loginUserID int64) (*Event, error) {
-	var event Event
-	if err := db.QueryRow("SELECT * FROM events WHERE id = ?", eventID).Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
-		return nil, err
+	event, err := FetchEventCache(eventID)
+	if err != nil {
+		return nil, sql.ErrNoRows
 	}
 	event.Remains = 1000
 	event.Total = 1000
@@ -69,7 +70,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		event.Sheets[sheet.Rank].Detail = append(event.Sheets[sheet.Rank].Detail, sheet)
 	}
 
-	return &event, nil
+	return event, nil
 }
 
 func getEventWithoutDetail(e *Event) (*Event, error) {
