@@ -221,6 +221,7 @@ func main() {
 		cmd.Stdout = os.Stdout
 		err := cmd.Run()
 		if err != nil {
+			fmt.Println("DEBUG: ", err)
 			return nil
 		}
 
