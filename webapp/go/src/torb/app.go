@@ -26,7 +26,7 @@ import (
 )
 
 var (
-	cacheClient *memcacheClient
+	cacheClient *redisClient
 )
 
 func sessUserID(c echo.Context) int64 {
@@ -181,9 +181,12 @@ func main() {
 	}
 	db = sqlx.NewDb(d, "mysql")
 
-	memcacheHost := os.Getenv("MEMCACHE_HOST")
-	memcachePort := os.Getenv("MEMCACHE_PORT")
-	cacheClient = NewMemcache("tcp", fmt.Sprintf("%s:%s", memcacheHost, memcachePort))
+	// memcacheHost := os.Getenv("MEMCACHE_HOST")
+	// memcachePort := os.Getenv("MEMCACHE_PORT")
+	// cacheClient = NewMemcache("tcp", fmt.Sprintf("%s:%s", memcacheHost, memcachePort))
+	redisHost := os.Getenv("REDIS_HOST")
+	redisPort := os.Getenv("REDIS_PORT")
+	cacheClient = NewRedis("tcp", fmt.Sprintf("%s:%s", redisHost, redisPort))
 
 	e := echo.New()
 	funcs := template.FuncMap{
