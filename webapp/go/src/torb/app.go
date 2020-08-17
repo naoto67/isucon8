@@ -628,7 +628,7 @@ func main() {
 			tx.Rollback()
 			return err
 		}
-		go RegisterEventCache(Event{ID: eventID, Title: params.Title, PublicFg: params.Public, Price: params.Price, ClosedFg: false})
+		go RegisterEventCache(Event{ID: eventID, Title: params.Title, PublicFg: params.Public, Price: int64(params.Price), ClosedFg: false})
 		if err := tx.Commit(); err != nil {
 			return err
 		}
