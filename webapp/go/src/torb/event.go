@@ -1,5 +1,10 @@
 package main
 
+import (
+	"fmt"
+	"time"
+)
+
 func fetchEventReservationCount(eventID, eventPrice int64) (map[string]*Sheets, error) {
 	res := makeEventSheets(eventPrice)
 	rows, err := db.Query("SELECT sheet_id FROM reservations WHERE canceled_at IS NULL AND event_id = ?", eventID)
@@ -77,6 +82,11 @@ func getEventWithoutDetail(e *Event) (*Event, error) {
 
 func getEvents(all bool) ([]*Event, error) {
 	var events []*Event
+	key := fmt.Sprintf("getEvents:%t", all)
+	res, ok := gc.Get(key)
+	if ok {
+		return res.([]*Event), nil
+	}
 	eventDict := make(map[int64]*Event)
 	chErr := make(chan error)
 	go func() {
@@ -128,5 +138,6 @@ func getEvents(all bool) ([]*Event, error) {
 			v.Sheets[sheet.Rank].Remains = v.Sheets[sheet.Rank].Remains - 1
 		}
 	}
+	gc.Set(key, events, 100*time.Millisecond)
 	return events, nil
 }
