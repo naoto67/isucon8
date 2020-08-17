@@ -76,36 +76,44 @@ func getEventWithoutDetail(e *Event) (*Event, error) {
 }
 
 func getEvents(all bool) ([]*Event, error) {
-	rows, err := db.Query("SELECT * FROM events ORDER BY id ASC")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
 	var events []*Event
 	eventDict := make(map[int64]*Event)
-	for rows.Next() {
-		var event Event
-		if err := rows.Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
-			return nil, err
+	chErr := make(chan error)
+	go func() {
+		rows, err := db.Query("SELECT * FROM events ORDER BY id ASC")
+		if err != nil {
+			chErr <- err
+			return
 		}
-		if !all && !event.PublicFg {
-			continue
-		}
-		// 残りを最大にしてEventを作成
-		event.Total = 1000
-		event.Remains = 1000
-		event.Sheets = makeEventSheets(event.Price)
-		eventDict[event.ID] = &event
-		events = append(events, &event)
-	}
+		defer rows.Close()
 
-	rows, err = db.Query("SELECT event_id, sheet_id FROM reservations WHERE canceled_at IS NULL")
+		for rows.Next() {
+			var event Event
+			if err := rows.Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
+				chErr <- err
+				return
+			}
+			if !all && !event.PublicFg {
+				continue
+			}
+			// 残りを最大にしてEventを作成
+			event.Total = 1000
+			event.Remains = 1000
+			event.Sheets = makeEventSheets(event.Price)
+			eventDict[event.ID] = &event
+			events = append(events, &event)
+		}
+		chErr <- nil
+	}()
+
+	rows, err := db.Query("SELECT event_id, sheet_id FROM reservations WHERE canceled_at IS NULL")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-
+	if err = <-chErr; err != nil {
+		return nil, err
+	}
 	for rows.Next() {
 		var eventSheet struct {
 			EventID int64
