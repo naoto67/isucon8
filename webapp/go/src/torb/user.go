@@ -43,9 +43,10 @@ func RegisterUser(nickname, loginName, password string) (*User, error) {
 		return nil, ErrLoginNameEx
 	}
 	sum := sha256.Sum256([]byte(password))
+	passHash := *(*string)(unsafe.Pointer(&sum))
 
 	tx, err := db.Begin()
-	res, err := tx.Exec("INSERT INTO users (login_name, pass_hash, nickname) VALUES (?, ?, ?)", loginName, sum, nickname)
+	res, err := tx.Exec("INSERT INTO users (login_name, pass_hash, nickname) VALUES (?, ?, ?)", loginName, passHash, nickname)
 	if err != nil {
 		tx.Rollback()
 		return nil, err
@@ -59,7 +60,7 @@ func RegisterUser(nickname, loginName, password string) (*User, error) {
 		ID:        userID,
 		Nickname:  nickname,
 		LoginName: loginName,
-		PassHash:  *(*string)(unsafe.Pointer(&sum)),
+		PassHash:  passHash,
 	}
 	data, err := json.Marshal(user)
 	if err != nil {
