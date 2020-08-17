@@ -138,6 +138,6 @@ func getEvents(all bool) ([]*Event, error) {
 			v.Sheets[sheet.Rank].Remains = v.Sheets[sheet.Rank].Remains - 1
 		}
 	}
-	gc.Set(key, events, 100*time.Millisecond)
+	gc.Set(key, events, 10*time.Millisecond)
 	return events, nil
 }
