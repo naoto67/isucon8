@@ -1,6 +1,9 @@
 package main
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
 
 func getSheetByID(sheetID int64) *Sheet {
 	if sheetID <= 50 && sheetID > 0 {
@@ -136,4 +139,28 @@ func getNotReservedSheets(eventID int64, rank string) (sheets []Sheet, err error
 		sheets = append(sheets, sheet)
 	}
 	return
+}
+
+func validateRankSheetNum(rank string, num int64) bool {
+	res := false
+	Rank := strings.ToUpper(rank)
+	switch Rank {
+	case "S":
+		if 0 < num && num < 51 {
+			res = true
+		}
+	case "A":
+		if 0 < num && num < 151 {
+			res = true
+		}
+	case "B":
+		if 0 < num && num < 301 {
+			res = true
+		}
+	case "C":
+		if 0 < num && num < 501 {
+			res = true
+		}
+	}
+	return res
 }
