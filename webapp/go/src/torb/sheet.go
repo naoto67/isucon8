@@ -79,26 +79,26 @@ func getSheetsByRank(rank string) *Sheets {
 func getSheetByRankAndNum(rank string, num int64) (*Sheet, error) {
 	if rank == "S" && num <= 50 && num > 0 {
 		return &Sheet{
-			ID:    num + 1,
+			ID:    num,
 			Num:   num,
 			Price: 5000,
 		}, nil
 	} else if rank == "A" && num <= 150 && num > 0 {
 		return &Sheet{
-			ID:    num + 1,
+			ID:    num + 50,
 			Num:   num,
 			Price: 3000,
 		}, nil
 
 	} else if rank == "B" && num <= 300 && num > 0 {
 		return &Sheet{
-			ID:    num + 1,
+			ID:    num + 200,
 			Num:   num,
 			Price: 1000,
 		}, nil
 	} else if rank == "C" && num <= 500 && num > 0 {
 		return &Sheet{
-			ID:    num + 1,
+			ID:    num + 500,
 			Num:   num,
 			Price: 0,
 		}, nil
