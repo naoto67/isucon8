@@ -17,29 +17,29 @@ var (
 
 func InitUserCache() error {
 	var users []User
+	err := db.Select(&users, "SELECT * FROM users")
+	if err != nil {
+		return err
+	}
+	dict := map[string][]byte{}
 	for _, v := range users {
 		data, err := json.Marshal(v)
 		if err != nil {
 			return err
 		}
 		key := fmt.Sprintf("%s%d", USER_ID_KEY, v.ID)
-		err = cacheClient.SingleSet(key, data)
-		if err != nil {
-			return err
-		}
+		dict[key] = data
 		key = fmt.Sprintf("%s%s", USER_LOGIN_NAME_KEY, v.LoginName)
-		err = cacheClient.SingleSet(key, data)
-		if err != nil {
-			return err
-		}
+		dict[key] = data
 	}
-	return nil
+	err = cacheClient.MultiSet(dict)
+	return err
 }
 
 func RegisterUser(nickname, loginName, password string) (*User, error) {
 	key := fmt.Sprintf("%s:%s", USER_LOGIN_NAME_KEY, loginName)
 	d, _ := cacheClient.SingleGet(key)
-	if d == nil {
+	if d != nil {
 		return nil, ErrLoginNameEx
 	}
 	sum := sha256.Sum256([]byte(password))
