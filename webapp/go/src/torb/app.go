@@ -231,14 +231,17 @@ func main() {
 
 		err = cacheClient.Flush()
 		if err != nil {
+			fmt.Println("FLUSH: ", err)
 			return err
 		}
 		err = InitUserCache()
 		if err != nil {
+			fmt.Println("InitUserCache: ", err)
 			return err
 		}
 		err = InitEventCache()
 		if err != nil {
+			fmt.Println("InitEventCache: ", err)
 			return err
 		}
 
