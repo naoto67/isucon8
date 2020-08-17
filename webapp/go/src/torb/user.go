@@ -98,3 +98,14 @@ func FetchUserCacheByID(userID int64) (*User, error) {
 	err = json.Unmarshal(data, &user)
 	return &user, err
 }
+
+func FetchUserCacheByLoginName(loginName string) (*User, error) {
+	key := fmt.Sprintf("%s%s", USER_LOGIN_NAME_KEY, loginName)
+	data, err := cacheClient.SingleGet(key)
+	if err != nil {
+		return nil, err
+	}
+	var user User
+	err = json.Unmarshal(data, &user)
+	return &user, err
+}

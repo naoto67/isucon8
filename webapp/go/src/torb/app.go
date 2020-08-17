@@ -355,12 +355,9 @@ func main() {
 		}
 		c.Bind(&params)
 
-		user := new(User)
-		if err := db.QueryRow("SELECT * FROM users WHERE login_name = ?", params.LoginName).Scan(&user.ID, &user.LoginName, &user.Nickname, &user.PassHash); err != nil {
-			if err == sql.ErrNoRows {
-				return resError(c, "authentication_failed", 401)
-			}
-			return err
+		user, err := FetchUserCacheByLoginName(params.LoginName)
+		if err != nil {
+			return resError(c, "authentication_failed", 401)
 		}
 
 		var passHash string
