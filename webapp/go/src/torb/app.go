@@ -19,9 +19,14 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/sessions"
+	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/middleware"
+)
+
+var (
+	cacheClient *memcacheClient
 )
 
 func sessUserID(c echo.Context) int64 {
@@ -158,7 +163,7 @@ func (r *Renderer) Render(w io.Writer, name string, data interface{}, c echo.Con
 	return r.templates.ExecuteTemplate(w, name, data)
 }
 
-var db *sql.DB
+var db *sqlx.DB
 
 func main() {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&charset=utf8mb4",
@@ -170,10 +175,15 @@ func main() {
 	rand.Seed(time.Now().Unix())
 
 	var err error
-	db, err = sql.Open("mysql", dsn)
+	d, err := sql.Open("mysql", dsn)
 	if err != nil {
 		log.Fatal(err)
 	}
+	db = sqlx.NewDb(d, "mysql")
+
+	memcacheHost := os.Getenv("MEMCACHE_HOST")
+	memcachePort := os.Getenv("MEMCACHE_PORT")
+	cacheClient = NewMemcache("tcp", fmt.Sprintf("%s:%s", memcacheHost, memcachePort))
 
 	e := echo.New()
 	funcs := template.FuncMap{
