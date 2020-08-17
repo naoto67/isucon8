@@ -244,6 +244,7 @@ func main() {
 		c.Bind(&params)
 
 		user, err := RegisterUser(params.Nickname, params.LoginName, params.Password)
+		fmt.Println("RegisterUser: ", user, err)
 		if err == ErrLoginNameEx {
 			return resError(c, "duplicated", 409)
 		}
