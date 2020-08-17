@@ -44,8 +44,9 @@ func RegisterUser(nickname, loginName, password string) (*User, error) {
 	}
 	sum := sha256.Sum256([]byte(password))
 	passHash := *(*string)(unsafe.Pointer(&sum))
+	fmt.Println("RegisterUser: passHash", passHash)
 
-	tx, err := db.Begin()
+	tx := db.MustBegin()
 	res, err := tx.Exec("INSERT INTO users (login_name, pass_hash, nickname) VALUES (?, ?, ?)", loginName, passHash, nickname)
 	if err != nil {
 		tx.Rollback()
