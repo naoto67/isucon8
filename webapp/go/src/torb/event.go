@@ -92,6 +92,7 @@ func getEvents(all bool) ([]*Event, error) {
 	chErr := make(chan error)
 	go func() {
 		events, err := FetchEventsCache()
+		fmt.Println("FETCH_EVENTS_CACHE: ", events, err)
 		if err != nil {
 			chErr <- err
 		}
@@ -218,6 +219,7 @@ func FetchEventsCache() ([]*Event, error) {
 	for i, _ := range d {
 		var e Event
 		err = json.Unmarshal(d[i], &e)
+		fmt.Println("FetchEventsCache: event", e)
 		if err != nil {
 			return nil, err
 		}
