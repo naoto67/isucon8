@@ -3,18 +3,18 @@ package main
 import "time"
 
 type User struct {
-	ID        int64  `json:"id,omitempty"`
-	Nickname  string `json:"nickname,omitempty"`
-	LoginName string `json:"login_name,omitempty"`
-	PassHash  string `json:"pass_hash,omitempty"`
+	ID        int64  `json:"id,omitempty" db:"id"`
+	Nickname  string `json:"nickname,omitempty" db:"nickname"`
+	LoginName string `json:"login_name,omitempty" db:"login_name"`
+	PassHash  string `json:"pass_hash,omitempty" db:"pass_hash"`
 }
 
 type Event struct {
-	ID       int64  `json:"id,omitempty",db:"id"`
-	Title    string `json:"title,omitempty",db:"title"`
-	PublicFg bool   `json:"public,omitempty",db:"public_fg"`
-	ClosedFg bool   `json:"closed,omitempty",db:"closed_fg"`
-	Price    int64  `json:"price,omitempty",db:"price"`
+	ID       int64  `json:"id,omitempty" db:"id"`
+	Title    string `json:"title,omitempty" db:"title"`
+	PublicFg bool   `json:"public,omitempty" db:"public_fg"`
+	ClosedFg bool   `json:"closed,omitempty" db:"closed_fg"`
+	Price    int64  `json:"price,omitempty" db:"price"`
 
 	Total   int                `json:"total"`
 	Remains int                `json:"remains"`
