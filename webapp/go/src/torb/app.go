@@ -23,12 +23,10 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/middleware"
-	"github.com/patrickmn/go-cache"
 )
 
 var (
 	cacheClient *redisClient
-	gc          *cache.Cache
 )
 
 func sessUserID(c echo.Context) int64 {
@@ -194,7 +192,6 @@ func main() {
 	redisHost := os.Getenv("REDIS_HOST")
 	redisPort := os.Getenv("REDIS_PORT")
 	cacheClient = NewRedis("tcp", fmt.Sprintf("%s:%s", redisHost, redisPort))
-	gc = cache.New(5*time.Minute, 10*time.Minute)
 
 	e := echo.New()
 	funcs := template.FuncMap{
