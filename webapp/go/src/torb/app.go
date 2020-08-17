@@ -221,17 +221,16 @@ func main() {
 		cmd.Stdout = os.Stdout
 		err := cmd.Run()
 		if err != nil {
-			fmt.Println("DEBUG: ", err)
 			return nil
 		}
 
 		err = cacheClient.Flush()
 		if err != nil {
-			return nil
+			return err
 		}
 		err = InitUserCache()
 		if err != nil {
-			return nil
+			return err
 		}
 
 		return c.NoContent(204)
