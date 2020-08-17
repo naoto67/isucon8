@@ -2,10 +2,10 @@ package main
 
 import (
 	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"unsafe"
 )
 
 var (
@@ -43,7 +43,7 @@ func RegisterUser(nickname, loginName, password string) (*User, error) {
 		return nil, ErrLoginNameEx
 	}
 	sum := sha256.Sum256([]byte(password))
-	passHash := *(*string)(unsafe.Pointer(&sum))
+	passHash := hex.EncodeToString(sum[:])
 	fmt.Println("RegisterUser: passHash", passHash)
 
 	tx := db.MustBegin()
