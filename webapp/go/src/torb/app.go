@@ -115,7 +115,12 @@ func getLoginUser(c echo.Context) (*User, error) {
 		return nil, errors.New("not logged in")
 	}
 	var user User
-	err := db.QueryRow("SELECT id, nickname FROM users WHERE id = ?", userID).Scan(&user.ID, &user.Nickname)
+	u, err := FetchUserCacheByID(userID)
+	if err != nil || u == nil {
+		return nil, err
+	}
+	user.ID = u.ID
+	user.Nickname = u.Nickname
 	return &user, err
 }
 
@@ -258,8 +263,8 @@ func main() {
 		})
 	})
 	e.GET("/api/users/:id", func(c echo.Context) error {
-		var user User
-		if err := db.QueryRow("SELECT id, nickname FROM users WHERE id = ?", c.Param("id")).Scan(&user.ID, &user.Nickname); err != nil {
+		userID, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
 			return err
 		}
 
@@ -267,9 +272,10 @@ func main() {
 		if err != nil {
 			return err
 		}
-		if user.ID != loginUser.ID {
+		if int64(userID) != loginUser.ID {
 			return resError(c, "forbidden", 403)
 		}
+		user := loginUser
 
 		rows, err := db.Query("SELECT * FROM reservations INNER JOIN events ON events.id = reservations.event_id WHERE user_id = ? ORDER BY IFNULL(canceled_at, reserved_at) DESC LIMIT 5", user.ID)
 		if err != nil {

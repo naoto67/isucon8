@@ -87,3 +87,14 @@ func RegisterUser(nickname, loginName, password string) (*User, error) {
 
 	return user, nil
 }
+
+func FetchUserCacheByID(userID int64) (*User, error) {
+	key := fmt.Sprintf("%s%d", USER_ID_KEY, userID)
+	data, err := cacheClient.SingleGet(key)
+	if err != nil {
+		return nil, err
+	}
+	var user User
+	err = json.Unmarshal(data, &user)
+	return &user, err
+}
