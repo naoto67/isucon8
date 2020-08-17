@@ -406,6 +406,7 @@ func main() {
 		return c.JSON(200, sanitizeEvent(event))
 	})
 	e.POST("/api/events/:id/actions/reserve", func(c echo.Context) error {
+		fmt.Println("RESERVE HANDLER")
 		eventID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 		if err != nil {
 			return resError(c, "not_found", 404)
@@ -436,40 +437,41 @@ func main() {
 
 		var sheet Sheet
 		var reservationID int64
+		sheets, err := getNotReservedSheets(event.ID, params.Rank)
+		if err != nil {
+			fmt.Println("getNotReservedSheets: ", err)
+			return err
+		}
+		if len(sheets) == 0 {
+			return resError(c, "sold_out", 409)
+		}
 		for {
-			sheets, err := getNotReservedSheets(event.ID, params.Rank)
-			if err != nil {
-				fmt.Println("getNotReservedSheets: ", err)
-				return err
-			}
 			if len(sheets) == 0 {
 				return resError(c, "sold_out", 409)
 			}
+			idx := rand.Intn(len(sheets))
+			sheet = sheets[idx]
+			locked := LockEventSheet(eventID, sheet.ID)
+			if locked {
+				sheets = append(sheets[:idx], sheets[idx:]...)
+				continue
+			}
 
-			sheet = sheets[rand.Intn(len(sheets))]
-
-			tx, err := db.Begin()
 			if err != nil {
 				return err
 			}
 
-			res, err := tx.Exec("INSERT INTO reservations (event_id, sheet_id, user_id, reserved_at) VALUES (?, ?, ?, ?)", event.ID, sheet.ID, user.ID, time.Now().UTC().Format("2006-01-02 15:04:05.000000"))
+			res, err := db.Exec("INSERT INTO reservations (event_id, sheet_id, user_id, reserved_at) VALUES (?, ?, ?, ?)", event.ID, sheet.ID, user.ID, time.Now().UTC().Format("2006-01-02 15:04:05.000000"))
 			if err != nil {
-				tx.Rollback()
 				log.Println("re-try: rollback by", err)
 				continue
 			}
 			reservationID, err = res.LastInsertId()
 			if err != nil {
-				tx.Rollback()
 				log.Println("re-try: rollback by", err)
 				continue
 			}
-			if err := tx.Commit(); err != nil {
-				tx.Rollback()
-				log.Println("re-try: rollback by", err)
-				continue
-			}
+			UnlockEventSheet(eventID, sheet.ID)
 
 			break
 		}

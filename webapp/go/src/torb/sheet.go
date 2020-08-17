@@ -123,7 +123,7 @@ func validateRank(rank string) bool {
 }
 
 func getNotReservedSheets(eventID int64, rank string) (sheets []Sheet, err error) {
-	rows, err := db.Query("SELECT * FROM sheets WHERE id NOT IN (SELECT sheet_id FROM reservations WHERE event_id = ? AND canceled_at IS NULL FOR UPDATE) AND `rank` = ?", eventID, rank)
+	rows, err := db.Query("SELECT * FROM sheets WHERE id NOT IN (SELECT sheet_id FROM reservations WHERE event_id = ? AND canceled_at IS NULL) AND `rank` = ?", eventID, rank)
 	if err != nil {
 		return
 	}
