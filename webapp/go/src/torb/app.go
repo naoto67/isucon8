@@ -519,13 +519,14 @@ func main() {
 		if err != nil {
 			return resError(c, "invalid_sheet", 404)
 		}
-		sheet, err := getSheetByRankAndNum(rank, int64(numI))
+		Rank := strings.ToUpper(rank)
+		sheet, err := getSheetByRankAndNum(Rank, int64(numI))
 		if err != nil {
 			return resError(c, "invalid_sheet", 404)
 		}
 
 		var reservation Reservation
-		if err := db.QueryRow("SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL", event.ID, sheet.ID).Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt); err != nil {
+		if err := db.QueryRow("SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id HAVING reserved_at = MIN(reserved_at)", event.ID, sheet.ID).Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt); err != nil {
 			if err == sql.ErrNoRows {
 				return resError(c, "not_reserved", 400)
 			}
