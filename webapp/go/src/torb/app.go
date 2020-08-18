@@ -187,7 +187,7 @@ func main() {
 		log.Fatal(err)
 	}
 	db = sqlx.NewDb(d, "mysql")
-	db.DB.SetMaxIdleConns(50)
+	db.DB.SetMaxIdleConns(30)
 
 	memcacheHost := os.Getenv("MEMCACHE_HOST")
 	memcachePort := os.Getenv("MEMCACHE_PORT")
