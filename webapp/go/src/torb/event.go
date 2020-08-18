@@ -108,6 +108,7 @@ func getEvents(all bool) ([]*Event, error) {
 			chErr <- err
 			return
 		}
+		sort.Slice(eventsCache, func(i, j int) bool { return eventsCache[i].ID < eventsCache[i].ID })
 
 		for _, event := range eventsCache {
 			if !all && !event.PublicFg {
@@ -149,7 +150,6 @@ func getEvents(all bool) ([]*Event, error) {
 		}
 	}
 
-	sort.Slice(events, func(i, j int) bool { return events[i].ID < events[i].ID })
 	return events, nil
 }
 
