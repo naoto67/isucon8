@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"sort"
 )
 
 var (
@@ -147,6 +148,8 @@ func getEvents(all bool) ([]*Event, error) {
 			v.Sheets[sheet.Rank].Remains = v.Sheets[sheet.Rank].Remains - 1
 		}
 	}
+
+	sort.Slice(events, func(i, j int) bool { return events[i].ID < events[i].ID })
 	return events, nil
 }
 
