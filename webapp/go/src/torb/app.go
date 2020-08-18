@@ -714,23 +714,19 @@ func main() {
 			return resError(c, "not_found", 404)
 		}
 
-		event, err := getEvent(eventID, -1)
-		if err != nil {
-			return err
+		event, err := FetchEventCache(eventID)
+		if err != nil || event == nil {
+			return resError(c, "not_found", 404)
 		}
 
-		rows, err := db.Query("SELECT r.*, e.price AS event_price FROM reservations r INNER JOIN events e ON e.id = r.event_id WHERE r.event_id = ?", event.ID)
+		var reservations []Reservation
+		err = db.Select(&reservations, "SELECT * FROM reservations WHERE event_id = ?", event.ID)
 		if err != nil {
 			return err
 		}
-		defer rows.Close()
 
 		var reports []Report
-		for rows.Next() {
-			var reservation Reservation
-			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &event.Price); err != nil {
-				return err
-			}
+		for _, reservation := range reservations {
 			sheet := getSheetByID(reservation.SheetID)
 			if sheet == nil {
 				fmt.Println("not found sheet")

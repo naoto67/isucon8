@@ -41,12 +41,12 @@ type Sheet struct {
 }
 
 type Reservation struct {
-	ID         int64      `json:"id"`
-	EventID    int64      `json:"-"`
-	SheetID    int64      `json:"-"`
-	UserID     int64      `json:"-"`
-	ReservedAt *time.Time `json:"-"`
-	CanceledAt *time.Time `json:"-"`
+	ID         int64      `json:"id" db:"id"`
+	EventID    int64      `json:"-" db:"event_id"`
+	SheetID    int64      `json:"-" db:"sheet_id"`
+	UserID     int64      `json:"-" db:"user_id"`
+	ReservedAt *time.Time `json:"-" db:"reserved_at"`
+	CanceledAt *time.Time `json:"-" db:"canceled_at"`
 
 	Event          *Event `json:"event,omitempty"`
 	SheetRank      string `json:"sheet_rank,omitempty"`
