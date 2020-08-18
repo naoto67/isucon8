@@ -103,12 +103,11 @@ func getEvents(all bool) ([]*Event, error) {
 	eventDict := make(map[int64]*Event)
 	chErr := make(chan error)
 	go func() {
-		eventsCache, err := FetchAllEventCache()
+		eventsCache, err := FetchEventsCache()
 		if err != nil {
 			chErr <- err
 			return
 		}
-		sort.Slice(eventsCache, func(i, j int) bool { return eventsCache[i].ID < eventsCache[i].ID })
 
 		for _, event := range eventsCache {
 			if !all && !event.PublicFg {
@@ -121,8 +120,8 @@ func getEvents(all bool) ([]*Event, error) {
 			event.Total = 1000
 			event.Remains = 1000
 			event.Sheets = makeEventSheets(event.Price)
-			eventDict[event.ID] = &event
-			events = append(events, &event)
+			eventDict[event.ID] = event
+			events = append(events, event)
 		}
 		chErr <- nil
 	}()
@@ -150,6 +149,7 @@ func getEvents(all bool) ([]*Event, error) {
 		}
 	}
 
+	sort.Slice(events, func(i, j int) bool { return events[i].ID < events[j].ID })
 	return events, nil
 }
 
@@ -246,40 +246,6 @@ func FetchEventsDict() (map[int64]*Event, error) {
 	res := map[int64]*Event{}
 	for _, e := range events {
 		res[e.ID] = e
-	}
-	return res, nil
-}
-
-func FetchAllEventCache() ([]Event, error) {
-	data, err := cacheClient.SingleGet(EVENT_COUNT_KEY)
-	if err != nil {
-		return nil, err
-	}
-	var cnt int
-	err = json.Unmarshal(data, &cnt)
-	if err != nil {
-		return nil, err
-	}
-	cnt += 3
-
-	keys := []string{}
-	for i := 1; i <= cnt; i++ {
-		keys = append(keys, fmt.Sprintf("%s%d", EVENT_ID_KEY, i))
-	}
-	d, err := cacheClient.MultiGet(keys)
-	var res []Event
-	for i, _ := range d {
-		var e Event
-		if d[i] == nil {
-			continue
-		}
-		err = json.Unmarshal(d[i], &e)
-		fmt.Println("FetchEventsCache: event", e)
-		if err != nil {
-			return nil, err
-		}
-
-		res = append(res, e)
 	}
 	return res, nil
 }
