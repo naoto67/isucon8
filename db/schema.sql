@@ -23,13 +23,14 @@ CREATE TABLE IF NOT EXISTS sheets (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS reservations (
-    id          INTEGER UNSIGNED UNIQUE AUTO_INCREMENT,
+    id          INTEGER UNSIGNED PRIMARY AUTO_INCREMENT,
     event_id    INTEGER UNSIGNED NOT NULL,
     sheet_id    INTEGER UNSIGNED NOT NULL,
     user_id     INTEGER UNSIGNED NOT NULL,
     reserved_at DATETIME(6)      NOT NULL,
     canceled_at DATETIME(6)      DEFAULT NULL,
-    PRIMARY KEY (`event_id`, `canceled_at`, `id`),
+    KEY event_id_and_canceled_at_idx (`event_id`, `canceled_at`),
+    KEY event_id_and_sheet_id_idx (`event_id`, `sheet_id`),
     KEY user_id_idx (`user_id`),
     KEY canceled_at_idx (`canceled_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
