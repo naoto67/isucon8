@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"sort"
 )
 
 var (
@@ -103,25 +102,29 @@ func getEvents(all bool) ([]*Event, error) {
 	eventDict := make(map[int64]*Event)
 	chErr := make(chan error)
 	go func() {
-		eventsCache, err := FetchEventsCache()
+		rows, err := db.Query("SELECT * FROM events ORDER BY id ASC")
+		// events, err := FetchEventsCache()
 		if err != nil {
 			chErr <- err
 			return
 		}
+		defer rows.Close()
 
-		for _, event := range eventsCache {
+		for rows.Next() {
+			var event Event
+			if err := rows.Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
+				chErr <- err
+				return
+			}
 			if !all && !event.PublicFg {
-				fmt.Println("getEvents: PublicFg", event.PublicFg)
-				fmt.Println("getEvents: event", event)
 				continue
 			}
-			fmt.Println("getEvents: event", event)
 			// 残りを最大にしてEventを作成
 			event.Total = 1000
 			event.Remains = 1000
 			event.Sheets = makeEventSheets(event.Price)
-			eventDict[event.ID] = event
-			events = append(events, event)
+			eventDict[event.ID] = &event
+			events = append(events, &event)
 		}
 		chErr <- nil
 	}()
@@ -148,8 +151,6 @@ func getEvents(all bool) ([]*Event, error) {
 			v.Sheets[sheet.Rank].Remains = v.Sheets[sheet.Rank].Remains - 1
 		}
 	}
-
-	sort.Slice(events, func(i, j int) bool { return events[i].ID < events[j].ID })
 	return events, nil
 }
 
