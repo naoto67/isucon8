@@ -110,8 +110,11 @@ func getEvents(all bool) ([]*Event, error) {
 
 		for _, event := range events {
 			if !all && !event.PublicFg {
+				fmt.Println("getEvents: PublicFg", event.PublicFg)
+				fmt.Println("getEvents: event", event)
 				continue
 			}
+			fmt.Println("getEvents: event", event)
 			// 残りを最大にしてEventを作成
 			event.Total = 1000
 			event.Remains = 1000
