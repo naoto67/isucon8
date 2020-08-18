@@ -2,7 +2,9 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -367,19 +369,13 @@ func main() {
 			return resError(c, "authentication_failed", 401)
 		}
 
-		var passHash string
-		if err := db.QueryRow("SELECT SHA2(?, 256)", params.Password).Scan(&passHash); err != nil {
-			return err
-		}
+		sum := sha256.Sum256([]byte(params.Password))
+		passHash := hex.EncodeToString(sum[:])
 		if user.PassHash != passHash {
 			return resError(c, "authentication_failed", 401)
 		}
 
 		sessSetUserID(c, user.ID)
-		user, err = getLoginUser(c)
-		if err != nil {
-			return err
-		}
 		return c.JSON(200, user)
 	})
 	e.POST("/api/actions/logout", func(c echo.Context) error {
