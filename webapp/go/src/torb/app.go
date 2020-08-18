@@ -445,6 +445,7 @@ func main() {
 		}
 
 		if !validateRank(params.Rank) {
+			fmt.Println("validateRank: rank", params.Rank)
 			return resError(c, "invalid_rank", 400)
 		}
 
