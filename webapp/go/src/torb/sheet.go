@@ -126,17 +126,30 @@ func validateRank(rank string) bool {
 }
 
 func getNotReservedSheets(eventID int64, rank string) (sheets []Sheet, err error) {
-	rows, err := db.Query("SELECT * FROM sheets WHERE id NOT IN (SELECT sheet_id FROM reservations WHERE event_id = ? AND canceled_at IS NULL) AND `rank` = ?", eventID, rank)
+	rows, err := db.Query("SELECT s.id FROM sheets s WHERE exists (SELECT s.id FROM reservations r WHERE event_id = ? AND canceled_at IS NULL AND r.sheet_id = s.id) AND rank = ?", eventID, rank)
 	if err != nil {
 		return
 	}
 	defer rows.Close()
+	res := map[int64]bool{}
 	for rows.Next() {
-		var sheet Sheet
-		if err = rows.Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
-			return
+		var id int64
+		err = rows.Scan(&id)
+		if err != nil {
+			return nil, err
 		}
-		sheets = append(sheets, sheet)
+
+		res[id] = true
+	}
+	count := getSheetCountByRank(rank)
+
+	for i := 1; i <= count; i++ {
+		if _, ok := res[int64(i)]; ok {
+			continue
+		}
+
+		sheet := getSheetByID(int64(i))
+		sheets = append(sheets, *sheet)
 	}
 	return
 }
@@ -163,4 +176,18 @@ func validateRankSheetNum(rank string, num int64) bool {
 		}
 	}
 	return res
+}
+
+func getSheetCountByRank(rank string) int {
+	switch rank {
+	case "S":
+		return 50
+	case "A":
+		return 150
+	case "B":
+		return 300
+	case "C":
+		return 500
+	}
+	return 0
 }

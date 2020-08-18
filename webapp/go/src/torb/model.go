@@ -62,3 +62,7 @@ type Administrator struct {
 	LoginName string `json:"login_name,omitempty"`
 	PassHash  string `json:"pass_hash,omitempty"`
 }
+
+type Row struct {
+	ID int64 `db:"id"`
+}
