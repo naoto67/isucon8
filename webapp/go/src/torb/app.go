@@ -445,7 +445,6 @@ func main() {
 		}
 
 		if !validateRank(params.Rank) {
-			fmt.Println("validateRank: rank", params.Rank)
 			return resError(c, "invalid_rank", 400)
 		}
 
@@ -454,7 +453,7 @@ func main() {
 		sheets, err := getNotReservedSheets(event.ID, params.Rank)
 		if err != nil {
 			fmt.Println("getNotReservedSheets: ", err)
-			return resError(c, fmt.Sprintf("getNotReservedSheets, err=", err.Error()), 500)
+			return err
 		}
 		if len(sheets) == 0 {
 			return resError(c, "sold_out", 409)
@@ -469,6 +468,10 @@ func main() {
 			if locked {
 				sheets = append(sheets[:idx], sheets[idx:]...)
 				continue
+			}
+
+			if err != nil {
+				return err
 			}
 
 			res, err := db.Exec("INSERT INTO reservations (event_id, sheet_id, user_id, reserved_at) VALUES (?, ?, ?, ?)", event.ID, sheet.ID, user.ID, time.Now().UTC().Format("2006-01-02 15:04:05.000000"))
