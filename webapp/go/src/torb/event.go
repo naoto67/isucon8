@@ -102,13 +102,13 @@ func getEvents(all bool) ([]*Event, error) {
 	eventDict := make(map[int64]*Event)
 	chErr := make(chan error)
 	go func() {
-		events, err := FetchEventsCache()
+		eventsCache, err := FetchEventsCache()
 		if err != nil {
 			chErr <- err
 			return
 		}
 
-		for _, event := range events {
+		for _, event := range eventsCache {
 			if !all && !event.PublicFg {
 				fmt.Println("getEvents: PublicFg", event.PublicFg)
 				fmt.Println("getEvents: event", event)
