@@ -238,3 +238,15 @@ func FetchEventsCache() ([]*Event, error) {
 	}
 	return res, nil
 }
+
+func FetchEventsDict() (map[int64]*Event, error) {
+	events, err := FetchEventsCache()
+	if err != nil {
+		return nil, err
+	}
+	res := map[int64]*Event{}
+	for _, e := range events {
+		res[e.ID] = e
+	}
+	return res, nil
+}

@@ -749,18 +749,23 @@ func main() {
 		return renderReportCSV(c, reports)
 	}, adminLoginRequired)
 	e.GET("/admin/api/reports/sales", func(c echo.Context) error {
-		rows, err := db.Query("select r.*, e.id as event_id, e.price as event_price from reservations r inner join events e on e.id = r.event_id")
+		var reservations []Reservation
+		err = db.Select(&reservations, "SELECT * FROM reservations")
 		if err != nil {
 			return err
 		}
-		defer rows.Close()
+
+		eventDict, err := FetchEventsDict()
+		if err != nil {
+			return err
+		}
 
 		var reports []Report
-		for rows.Next() {
-			var reservation Reservation
-			var event Event
-			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &event.ID, &event.Price); err != nil {
-				return err
+		for _, reservation := range reservations {
+			event, ok := eventDict[reservation.EventID]
+			if !ok {
+				fmt.Println("event not found")
+				return errors.New("not found")
 			}
 			sheet := getSheetByID(reservation.SheetID)
 			if sheet == nil {
